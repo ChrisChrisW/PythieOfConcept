@@ -1,5 +1,5 @@
 .vscode
 
-code/main
+./code/main
 
-html/results.json
+./html/results.json
