@@ -22,10 +22,12 @@ int main(void)
             return 1 ; // sortie du programme
         }
         
-        if(i == 0) {
-            fprintf(stderr, "PASS NJ = %c\n", C);
-        } else {
-            fprintf(stderr, "PASS => %c\n", C);
+        if(i == 0) fprintf(stderr, "PASS NJ = %c\n", C);
+        else if(i == 2) fprintf(stderr, "PASS J = %c\n", C);
+        else if(i > 3 && i < 10) fprintf(stderr, "PASS C = %c\n", C);
+        else if(i > 10 && i < 16) fprintf(stderr, "PASS W = %c\n", C); # TODO: modifier pour faire un tableau de valeur
+        else {
+            fprintf(stderr, "PASS %d ### %c\n", i, C);
         }
 
         i++;
