@@ -10,9 +10,15 @@ init :
 main : jars html
 	$(javaCMD) -b3 -b2  C:code/main
 
-php :
+php : html
 	php -S $(localhost) &
 	firefox $(localhost)/html/index.php
 
 compile: code
 	$(gccww) -o code/main code/main.c
+
+git :
+	git add .
+	git commit -am "update"
+	git push origin master
+	git status
