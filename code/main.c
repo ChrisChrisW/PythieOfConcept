@@ -22,7 +22,7 @@ void cleanBuffer() {
 
     return;
 }
-    
+
 int readStdin(char *data, int length)
 {
     char *positionEntree = NULL;
@@ -48,30 +48,64 @@ int main(void)
 {
     printPass();
 
-    // int NJ = 0; // nombre de pythies
-    // int J = 0;  // numéro de pythie
-    // char *C;
-    // int W = NULL;
-    // int ST = 0;
+    int NJ, J; // nombre et numéro de pythies
+    char* C[50]; // Concept
+    char* W[1000]; // Mot de la liste 
+    int S[1000][50]; // Le score associé au mot W
 
     // data d'entrée
-    char* zone = malloc(BEGIN_SIZE * sizeof(char));
-    for (int i = 0; i <= BEGIN_SIZE; i++)
+    char* data = malloc(BEGIN_SIZE * sizeof(char));
+
+    for (int line = 0; line <= BEGIN_SIZE; line++)
     {
-        readStdin(zone, BEGIN_SIZE);
-        fprintf(stderr, "data %d:  %s\n", i, zone);
+        readStdin(data, BEGIN_SIZE);
+
+        if(line == 0) {
+            char* tmp = malloc(sizeof(char*));
+            strcpy(tmp, strtok(data, " "));
+
+            for(int taille = 0; taille < 2; taille++)
+            {
+                if (taille == 0)
+                    NJ = atoi(tmp);
+                if (taille == 1)
+                    J = atoi(tmp);
+
+                tmp = strtok(NULL, " ");
+            }
+            free(tmp);
+
+            fprintf(stderr, "NJ = %d \n",NJ); // TODO: debug
+            fprintf(stderr, "J = %d \n",J); // TODO: debug
+        }
+        else if (line <= 50) {
+            int row = line - 1;
+            C[row] = data; // add each string in C
+
+            fprintf(stderr, "C in %d =>  %s\n", row, C[row]); // TODO: debug
+        }
+        else {
+            int row = line - 51;
+            char* tmp = malloc(50 * sizeof(char*));
+            tmp = strtok(data, " ");
+
+            for(int col=0; col<=50; col++)
+            {
+                if (col == 0) 
+                    W[row] = data; 
+                else 
+                    S[row][col - 1] = atoi(tmp);
+                
+                tmp = strtok(NULL, " "); // delete first argument
+            }
+            
+            free(tmp);
+            fprintf(stderr, "data string : %s \n",W[row]); // TODO: debug
+            fprintf(stderr, "S %d test sur le 2eme  => %d \n\n",row, S[row][2]); // TODO: debug
+
+            // fprintf(stderr, "data all =   %s\n", data); // TODO: debug
+        } 
     }
-    free(zone);
 
-    // zone = malloc(BEGIN_SIZE * sizeof(char));
-    // int i = 0;
-    // while (1)
-    // {
-    //     readStdin(zone, BEGIN_SIZE);
-    //     fprintf(stderr, "data %d:  %s\n", i, zone);
-    //     i++;
-    // }
-    // free(zone);
-
-    return 0 ;
+    return 0;
 }

@@ -2,7 +2,7 @@ localhost = localhost:8888
 javaCMD = java -jar pythieofconcept.jar
 gccww = gcc -Wall -Wextra -std=c99
 
-all : compile main php
+all : compile main
 
 init : 
 	$(java CMD) -b3 -b2 
