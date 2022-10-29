@@ -64,11 +64,11 @@ int main(void)
             char* tmp = malloc(sizeof(char*));
             strcpy(tmp, strtok(data, " "));
 
-            for(int taille = 0; taille < 2; taille++)
+            for(int col = 0; col < 2; col++)
             {
-                if (taille == 0)
+                if (col == 0)
                     NJ = atoi(tmp);
-                if (taille == 1)
+                if (col == 1)
                     J = atoi(tmp);
 
                 tmp = strtok(NULL, " ");
