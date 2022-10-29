@@ -8,7 +8,7 @@ init :
 	$(java CMD) -b3 -b2 
 
 main : jars html
-	$(javaCMD) -b3 -b2  C:code/main
+	$(javaCMD) C:code/main -b3 -b2
 
 php : html
 	php -S $(localhost) &
