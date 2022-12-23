@@ -15,7 +15,7 @@ php : html
 	firefox $(localhost)/html/index.php
 
 compile: code
-	$(gccww) -o code/main code/main.c
+	$(gccww) -o code/main code/code.c
 
 git :
 	git add .
