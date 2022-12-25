@@ -127,16 +127,15 @@ int get_index_of_element_in_array(int x, int array[], int len, int last_searched
     return -1;
 }
 
-int search_index_of_element_in_array(int x, int array[], int len){  // Chercher l'index d'un element dans un tableau sans tenir en compte le dernier element cherché
+int search_index_of_element_in_array(int x, int *array, int len){
     for (int i = 0; i < len; i++){
-        if (array[i] == x){
+        if (array[i] == x)
             return i;
-        }
     }
     return -1;
 }
 
-int convert_to_concept_ids(int extract[], int copy_of_weights[], int original_weights[],int len){ // copy_of_weights est le même tableau que original_weights mais trié, Cette fonction transforme le tableau copy_of_weights en tableau d'indexes de concepts qui correspondent aux indexes de chaque weight dans le tableau original
+int convert_to_concept_ids(int *extract, int *copy_of_weights, int original_weights, int len){
     int last_searched_weight = -300;
     int last_found_index = -300;
     for (int i = 0; i < len; i++){
