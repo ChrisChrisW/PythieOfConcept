@@ -18,34 +18,9 @@
  * W S0..Sn variables
 */
 struct W_and_S{
-    char word[MAX_WORD_SIZE + 1];
+    char word[MAX_WORD_SIZE];
     int scores[CONCEPTS_NB];
 };
-
-/**
- * Set player/pythie info data at start
- * 
- * @param int players_number
- * @return void
-*/
-void set_player_info_at_start(int players_number){
-    int J, P, END;
-    for (int player = 0; player < players_number; player++)
-        scanf("%d %d %d ", &J, &P, &END);
-}
-
-/**
- * Set player/pythie info data in each round
- * 
- * @param int players_number
- * @return void
-*/
-void set_player_info_in_each_round(int players_number){
-    char W[MAX_WORD_SIZE + 1];
-    int J, ST;
-    for (int player = 0; player < players_number; player++)
-        scanf("%s %d %d ", W, &J, &ST);
-}
 
 /**
  * Return target score
@@ -116,7 +91,7 @@ void init_algo(struct W_and_S my_W_and_S, int tmp_concepts[CONCEPTS_NB]){
  * @param int                   c
  * @return int
 */
-int formula(int target_concept_index, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE + 1], int word_index, struct W_and_S all_W_and_S[WORDS_NB], int a, int b, int c){
+int formula(int target_concept_index, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE], int word_index, struct W_and_S all_W_and_S[WORDS_NB], int a, int b, int c){
     char *word = all_W_and_S[word_index].word;
     char *target_concept = C[target_concept_index];
 
@@ -146,12 +121,84 @@ int formula(int target_concept_index, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE + 1],
  * @param int                   c
  * @return int 
 */
-int is_formula_is_gretter_than_next(int concept_index, int concept_next_index, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE + 1], int word_index, struct W_and_S all_W_and_S[WORDS_NB], int a, int b, int c){
+int is_formula_is_gretter_than_next(int concept_index, int concept_next_index, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE], int word_index, struct W_and_S all_W_and_S[WORDS_NB], int a, int b, int c){
     int f_current_value = formula(concept_index, C, word_index, all_W_and_S, a, b, c);
     int f_next_value = formula(concept_next_index, C, word_index, all_W_and_S, a, b, c);
 
     if(f_current_value < f_next_value) return 0;
     return 1;
+}
+
+/**
+ * Set A, B and C variables with average method
+ * 
+ * @param (int*)                a
+ * @param (int*)                b
+ * @param (int*)                c
+ * @param (int*)                C_in_round_indexes
+ * @param int                   target_index
+ * @param (struct W_and_S *)    my_W_and_S
+ * @param (char**)              C
+ * @return void
+*/
+void set_a_b_c_variables(int * a, int * b, int * c, int * C_in_round_indexes, int target_index, struct W_and_S *all_W_and_S, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE]){
+    int is_great_combinations = 0; // bool
+    int total_of_combinnations = 0;
+    int sum_a = 0, sum_b = 0, sum_c = 0;
+    int max = 100;
+
+    for (int a_value = 1; a_value <= max; a_value+=CALIBRATION){
+        for (int b_value = 1; b_value <= max; b_value+=CALIBRATION){
+            for (int c_value = 1; c_value <= max; c_value+=CALIBRATION){
+                is_great_combinations = 0;
+
+                for (int r = 0; r < ROUNDS_NB; r++){
+                    if (is_formula_is_gretter_than_next(C_in_round_indexes[r], C_in_round_indexes[r + 1], C, target_index, all_W_and_S, a_value, b_value, c_value)){
+                        is_great_combinations = 1; break; 
+                    }
+                }
+                
+                if (is_great_combinations == 0){
+                    sum_a += a_value;
+                    sum_b += b_value; 
+                    sum_c += c_value;
+                    total_of_combinnations++;                
+                }
+            }
+        }
+    }
+
+    // set a, b and c with average method
+    if(total_of_combinnations > 0){
+        *a = sum_a / total_of_combinnations;
+        *b = sum_b / total_of_combinnations;
+        *c = sum_c / total_of_combinnations;
+    }
+}
+
+/**
+ * Set player/pythie info data at start
+ * 
+ * @param int players_number
+ * @return void
+*/
+void set_player_info_at_start(int players_number){
+    int J, P, END;
+    for (int player = 0; player < players_number; player++)
+        scanf("%d %d %d ", &J, &P, &END);
+}
+
+/**
+ * Set player/pythie info data in each round
+ * 
+ * @param int players_number
+ * @return void
+*/
+void set_player_info_in_each_round(int players_number){
+    char W[MAX_WORD_SIZE];
+    int J, ST;
+    for (int player = 0; player < players_number; player++)
+        scanf("%s %d %d ", W, &J, &ST);
 }
 
 /**
@@ -162,8 +209,8 @@ int is_formula_is_gretter_than_next(int concept_index, int concept_next_index, c
  * @param (char**)  C
  * @return void 
 */
-void readStdin(char * concept, int * concept_index, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE + 1]){
-    fgets(concept, 16, stdin);
+void readStdin(char * concept, int * concept_index, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE]){
+    fgets(concept, CONCEPTS_NB, stdin);
     concept[strcspn(concept, "\n")] = 0;
     // get index of C
     *concept_index = -1;
@@ -234,53 +281,6 @@ int get_similar_values_between_two_concepts_and_set_p1_and_p2(int * tmp_concepts
 }
 
 /**
- * Set A, B and C variables with average method
- * 
- * @param (int*)                a
- * @param (int*)                b
- * @param (int*)                c
- * @param (int*)                C_in_round_indexes
- * @param int                   target_index
- * @param (struct W_and_S *)    my_W_and_S
- * @param (char**)              C
- * @return void
-*/
-void set_a_b_c_variables(int * a, int * b, int * c, int * C_in_round_indexes, int target_index, struct W_and_S *all_W_and_S, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE + 1]){
-    int is_great_combinations = 0; // bool
-    int total_of_combinnations = 0;
-    int sum_a = 0, sum_b = 0, sum_c = 0;
-    int max = 100;
-
-    for (int a_value = 1; a_value <= max; a_value+=CALIBRATION){
-        for (int b_value = 1; b_value <= max; b_value+=CALIBRATION){
-            for (int c_value = 1; c_value <= max; c_value+=CALIBRATION){
-                is_great_combinations = 0;
-
-                for (int r = 0; r < (ROUNDS_NB - 1); r++){
-                    if (is_formula_is_gretter_than_next(C_in_round_indexes[r], C_in_round_indexes[r + 1], C, target_index, all_W_and_S, a_value, b_value, c_value)){
-                        is_great_combinations = 1; break; 
-                    }
-                }
-                
-                if (is_great_combinations == 0){
-                    sum_a += a_value;
-                    sum_b += b_value; 
-                    sum_c += c_value;
-                    total_of_combinnations++;                
-                }
-            }
-        }
-    }
-
-    // set a, b and c with average method
-    if(total_of_combinnations > 0){
-        *a = sum_a / total_of_combinnations;
-        *b = sum_b / total_of_combinnations;
-        *c = sum_c / total_of_combinnations;
-    }
-}
-
-/**
  * Main function
  * 
  * @return int
@@ -293,7 +293,7 @@ int main(void){
     scanf("%d %d", &NJ, &J);
 
     // Init concepts
-    char C[CONCEPTS_NB][MAX_CONCEPT_SIZE + 1];
+    char C[CONCEPTS_NB][MAX_CONCEPT_SIZE];
     for (int concept_index = 0; concept_index < CONCEPTS_NB; concept_index++)
         scanf("%s", C[concept_index]);
     
@@ -320,7 +320,7 @@ int main(void){
         set_player_info_in_each_round(NJ);
     }
 
-    char * guess_word = (char *) malloc(sizeof(char) * MAX_WORD_SIZE);
+    char * guess_word = (char *) malloc(MAX_WORD_SIZE * sizeof(char));
     int p1, p2; // (10 - p), (10 + p)
     int target_index, min_count;
 
@@ -334,12 +334,12 @@ int main(void){
         int tmp_p1, tmp_p2;
         int count_similar_value = get_similar_values_between_two_concepts_and_set_p1_and_p2(tmp_concepts, C_in_round_indexes, &tmp_p1, &tmp_p2);
         if ((count_similar_value <= min_count) && (tmp_p1 < tmp_p2) && (abs(tmp_p1 + tmp_p2 - 20) < abs(p1 + p2 - 20))){
-            p1 = tmp_p1; p2 = tmp_p2;
-            min_count = count_similar_value;
             target_index = word_index;
+            min_count = count_similar_value;
+            p1 = tmp_p1; p2 = tmp_p2;
         }
     }
-    int p = 10 - p1; // Init p
+    int p = 10 - p1; // Init p, between 3 and 7
 
     set_player_info_in_each_round(NJ);
 
@@ -362,17 +362,17 @@ int main(void){
             readStdin(current_concepts, &current_concepts_index, C);
 
             // Loop to delete wrong answer
-            for (int i = 0; i < WORDS_NB; i++){
-                struct W_and_S my_W_and_S = all_W_and_S[i];
+            for (int word_index = 0; word_index < WORDS_NB; word_index++){
+                struct W_and_S my_W_and_S = all_W_and_S[word_index];
                 int tmp_concepts[CONCEPTS_NB];
                 init_algo(my_W_and_S, tmp_concepts);
                 
                 // delete wrong word not to be between p1 and p2 => p
-                int index_of_received_concept = get_target_array_index(current_concepts_index, tmp_concepts, CONCEPTS_NB);
-                if (index_of_received_concept >= (10 - p) && (index_of_received_concept <= (49 - 10 - p))) words[i] = 1;
+                int target_index = get_target_array_index(current_concepts_index, tmp_concepts, CONCEPTS_NB);
+                if (target_index >= (10 - p) && (target_index <= (49 - (10 + p)))) words[word_index] = 1;
                 
                 // delete wrong word with formula
-                if (save_concepts_index != -1 && !is_formula_is_gretter_than_next(current_concepts_index, save_concepts_index, C, i, all_W_and_S, a, b, c)) words[i] = 1;
+                if (save_concepts_index != -1 && !is_formula_is_gretter_than_next(current_concepts_index, save_concepts_index, C, word_index, all_W_and_S, a, b, c)) words[word_index] = 1;
             }
             
             // Find the last one
@@ -380,9 +380,9 @@ int main(void){
             for (int i = 0; i < WORDS_NB; i++) sum_words += words[i];
 
             // GUESS OR PASS
-            if (sum_words == (WORDS_NB - 1) && is_great_word == 0){
-                int word_index = get_target_array_index(0, words, WORDS_NB);
-                guess_word = all_W_and_S[word_index].word;
+            if (is_great_word == 0 && sum_words == (WORDS_NB - 1)){
+                int target_index = get_target_array_index(0, words, WORDS_NB);
+                guess_word = all_W_and_S[target_index].word;
                 printf("GUESS %s\n", guess_word);
                 is_great_word = 1;
             } else printf("PASS\n");
