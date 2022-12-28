@@ -53,12 +53,24 @@ struct W_and_S{
     int scores[CONCEPTS_NB];
 };
 
-void set_player_info(int players_number){
+/**
+ * Set player/pythie info data at start
+ * 
+ * @param int players_number
+ * @return void
+*/
+void set_player_info_at_start(int players_number){
     int J, P, END;
     for (int player = 0; player < players_number; player++)
         scanf("%d %d %d ", &J, &P, &END);
 }
 
+/**
+ * Set player/pythie info data in each round
+ * 
+ * @param int players_number
+ * @return void
+*/
 void set_player_info_in_each_round(int players_number){
     char prop1[MAX_WORD_SIZE+1]; // TODO
     int prop2, prop3; // TODO
@@ -66,6 +78,15 @@ void set_player_info_in_each_round(int players_number){
         scanf("%s %d %d ", prop1, &prop2, &prop3);
 }
 
+/**
+ * Set player/pythie info data in each round
+ * 
+ * @param int target
+ * @param (int*) scores
+ * @param int last_target_score
+ * @param int last_target_index
+ * @return int
+*/
 int get_score(int target, int * scores, int last_target_score, int last_target_index){
     for (int score = 0; score < CONCEPTS_NB; score++){
         if (scores[score] == target && (last_target_score != target || score > last_target_index)) return score;
@@ -73,13 +94,27 @@ int get_score(int target, int * scores, int last_target_score, int last_target_i
     return -1;
 }
 
+/**
+ * https://koor.fr/C/cstdlib/qsort.wp
+ * 
+ * @param (const void*) first
+ * @param (const void*) second
+ * @return int
+*/
 int intComparator(const void * first, const void * second){
     int firstInt = * (const int *) first;
     int secondInt = * (const int *) second;
     return firstInt - secondInt;
 }
 
-void init_algo(struct W_and_S my_W_and_S, int extract[CONCEPTS_NB]) {
+/**
+ * Sort tmp_concepts with scores from W_and_S struct
+ * 
+ * @param (struct W_and_S) my_W_and_S
+ * @param (int*) tmp_concepts
+ * @return void
+*/
+void init_algo(struct W_and_S my_W_and_S, int tmp_concepts[CONCEPTS_NB]) {
     // Make a copy
     int scores[CONCEPTS_NB];
     for (int i = 0; i < CONCEPTS_NB; i++)
@@ -88,17 +123,30 @@ void init_algo(struct W_and_S my_W_and_S, int extract[CONCEPTS_NB]) {
     // Sort scores variable
     qsort(scores, CONCEPTS_NB, sizeof(int), intComparator);
         
-    // Sort extract variable
+    // Sort tmp_concepts variable
     int last_target_score, last_target_index;
     for (int i = 0; i < CONCEPTS_NB; i++){
         int target = scores[i];
-        extract[i] = get_score(target, my_W_and_S.scores, last_target_score, last_target_index);
+        tmp_concepts[i] = get_score(target, my_W_and_S.scores, last_target_score, last_target_index);
 
         last_target_score = target;
-        last_target_index = extract[i];
+        last_target_index = tmp_concepts[i];
     }
 }
 
+/**
+ * Formula
+ * init s, t and u
+ * 
+ * @param int                   concept_index
+ * @param (char**)              C
+ * @param int                   word_index
+ * @param (struct W_and_S *)    my_W_and_S
+ * @param int                   a
+ * @param int                   b
+ * @param int                   c
+ * @return int
+*/
 int formula(int concept_index, char C[CONCEPTS_NB][CONCEPT_SIZE+1], int word_index, struct W_and_S all_W_and_S[WORDS_NB], int a, int b, int c){ // Cette fonction calcule la valeur de la fonction utilisée par la déesse
     char *word = all_W_and_S[word_index].word;
     char *concept = C[concept_index];
@@ -116,14 +164,35 @@ int formula(int concept_index, char C[CONCEPTS_NB][CONCEPT_SIZE+1], int word_ind
     return a*s + 10*b*t + 10*c*u;
 }
 
-int is_formula_is_gretter_than_next(int concept_index, int concept_next_index, char C[CONCEPTS_NB][CONCEPT_SIZE+1],int word_index, struct W_and_S all_W_and_S[WORDS_NB], int a, int b, int c){
-    int f_current = formula(concept_index, C, word_index, all_W_and_S, a, b, c);
-    int f_next = formula(concept_next_index, C, word_index, all_W_and_S, a, b, c);
+/**
+ * In the formula, we compare between the current concept and next one
+ * 
+ * @param int                   concept_index
+ * @param int                   concept_next_index
+ * @param (char**)              C
+ * @param int                   word_index
+ * @param (struct W_and_S *)    my_W_and_S
+ * @param int                   a
+ * @param int                   b
+ * @param int                   c
+ * @return int 
+*/
+int is_formula_is_gretter_than_next(int concept_index, int concept_next_index, char C[CONCEPTS_NB][CONCEPT_SIZE+1], int word_index, struct W_and_S all_W_and_S[WORDS_NB], int a, int b, int c){
+    int f_current_value = formula(concept_index, C, word_index, all_W_and_S, a, b, c);
+    int f_next_value = formula(concept_next_index, C, word_index, all_W_and_S, a, b, c);
 
-    if(f_current < f_next) return 0;
+    if(f_current_value < f_next_value) return 0;
     return 1;
 }
 
+/**
+ * Read stdin value with fgets method
+ * 
+ * @param (char*)   concept
+ * @param (int*)    concept_index
+ * @param (char**)  C
+ * @return void 
+*/
 void readStdin(char * concept, int * concept_index, char C[CONCEPTS_NB][CONCEPT_SIZE+1]) {
     fgets(concept, 16, stdin);
     concept[strcspn(concept, "\n")] = 0;
@@ -134,20 +203,28 @@ void readStdin(char * concept, int * concept_index, char C[CONCEPTS_NB][CONCEPT_
     }
 }
 
-int get_target_array_index(int target, int * array, int size){
+/**
+ * Get variable target index from array
+ * 
+ * @param int       target
+ * @param (int*)    arr
+ * @param int       size
+ * @return int
+*/
+int get_target_array_index(int target, int * arr, int size){
     for (int index = 0; index < size; index++){
-        if (array[index] == target) return index;
+        if (arr[index] == target) return index;
     }
     return -1;
 }
 
-// Check si la liste extract créée pour chaque mot dans la liste des 1000 mots donnés au début correspond aux C données par la déesse
-int array_comp(int *extract, int *C_in_round_indexes, int * p1, int * p2){
+// Check si la liste tmp_concepts créée pour chaque mot dans la liste des 1000 mots donnés au début correspond aux C données par la déesse
+int array_comp(int *tmp_concepts, int *C_in_round_indexes, int * p1, int * p2){
     int array[CONCEPTS_NB] = {0};
     
     for (int i = 0; i < ROUNDS_NB; i++){
         for (int j = 0; j < CONCEPTS_NB; j++){
-            if (extract[j] == C_in_round_indexes[i]){
+            if (tmp_concepts[j] == C_in_round_indexes[i]){
                 array[j] = 1;
                 break;
             }
@@ -178,10 +255,61 @@ int array_comp(int *extract, int *C_in_round_indexes, int * p1, int * p2){
     return count;
 }
 
+/**
+ * Set A, B and C variables with average method
+ * 
+ * @param (int*)                a
+ * @param (int*)                b
+ * @param (int*)                c
+ * @param (int*)                C_in_round_indexes
+ * @param int                   target_index
+ * @param (struct W_and_S *)    my_W_and_S
+ * @param (char**)              C
+ * @return void
+*/
+void set_a_b_c_variables(int * a, int * b, int * c, int * C_in_round_indexes, int target_index, struct W_and_S *all_W_and_S, char C[CONCEPTS_NB][CONCEPT_SIZE+1]) {
+    int total_of_combinnations = 0;
+    int is_great_combinations = 0; // bool
+    int sum_a=0, sum_b=0, sum_c=0;
+    int max = 100;
 
+    for (int a_value = 1; a_value <= max; a_value+=PRECISION){
+        for (int b_value = 1; b_value <= max; b_value+=PRECISION){
+            for (int c_value = 1; c_value <= max; c_value+=PRECISION){
+                is_great_combinations = 0;
 
+                for (int r = 0; r < ROUNDS_NB-1; r++){
+                    if (is_formula_is_gretter_than_next(C_in_round_indexes[r], C_in_round_indexes[r+1], C, target_index, all_W_and_S, a_value, b_value, c_value)){
+                        is_great_combinations = 1;
+                        break; 
+                    }
+                }
+                
+                if (is_great_combinations == 0){
+                    sum_a += a_value;
+                    sum_b += b_value; 
+                    sum_c += c_value;
+                    total_of_combinnations++;                
+                }
+            }
+        }
+    }
+
+    // set a, b and c with average method
+    if(total_of_combinnations > 0) {
+        *a = sum_a / total_of_combinnations;
+        *b = sum_b / total_of_combinnations;
+        *c = sum_c / total_of_combinnations;
+    }
+}
+
+/**
+ * Main function
+ * 
+ * @return int
+*/
 int main(void){
-    fflush(stdout);
+    fflush(stdout); // debug
 
     // Init pythies
     int NJ, J;
@@ -195,108 +323,83 @@ int main(void){
     // Init W S0..Sn
     struct W_and_S all_W_and_S[WORDS_NB];
     for (int word_index = 0; word_index < WORDS_NB; word_index++){
-        scanf("%s ", all_W_and_S[word_index].word);
+        scanf("%s ", all_W_and_S[word_index].word); // init W
+
         for (int score_index = 0; score_index < SCORES_NB; score_index++)
-            scanf("%d ", &all_W_and_S[word_index].scores[score_index]);
+            scanf("%d ", &all_W_and_S[word_index].scores[score_index]); // init S
     }
     
-                // ======================   Phases du jeu   ====================== //
-//================>>>>>> PHASE 1
+    /* STARTING GAME */
+    /* STEP 1 */
 
+    set_player_info_at_start(NJ);
+
+    // Get concept in each rounds in 1rd step
     char C_in_round[20][CONCEPT_SIZE];
     int C_in_round_indexes[20];
-    set_player_info(NJ);
-    
-    // Comportement similaire à celui de iaDelphe pour la première phase afin de trouver le paramètre p
-    for (int i = 0; i < 20; i++){
-        readStdin(C_in_round[i], &C_in_round_indexes[i], C);
-        printf("PASS\n"); fflush(stdout);
+    for (int round = 0; round < ROUNDS_NB; round++){
+        readStdin(C_in_round[round], &C_in_round_indexes[round], C);
+        printf("PASS\n"); fflush(stdout); // debug
         set_player_info_in_each_round(NJ);
     }
 
-    char *guess_word = (char*)malloc(sizeof(char)*26);
-    int p1, p2; // 10 - p, 10 + p
-    int index_of_the_most_close; // indexe du mot le plus probable 
-    int most_low_count = 49; // minimum de count, avec count le nombre de changement de 1 à 0 out de 0 à 1 dans la liste comparative ( regarder explication de l'algo tout en haut du code )
-    
+    char * guess_word = (char *) malloc(sizeof(char) * MAX_WORD_SIZE);
+    int p1, p2; // (10 - p), (10 + p)
+    int target_index, min_count;
+
     // Find word and p
-    for (int i = 0; i < WORDS_NB; i++){
-        struct W_and_S my_W_and_S = all_W_and_S[i];
-        int extract[CONCEPTS_NB];
-        init_algo(my_W_and_S, extract);
+    for (int word_index = 0; word_index < WORDS_NB; word_index++){
+        struct W_and_S my_W_and_S = all_W_and_S[word_index];
+        int tmp_concepts[CONCEPTS_NB];
+        init_algo(my_W_and_S, tmp_concepts); // sort tmp_concepts
         
+        // TODO
         int tmp_p1, tmp_p2;
-        int similarity = array_comp(extract, C_in_round_indexes, &tmp_p1, &tmp_p2);
-        if (similarity <= most_low_count && (tmp_p1 < tmp_p2) && (abs(tmp_p1+tmp_p2 -20) < abs(p1 + p2 - 20)) ){
-            p1 = tmp_p1;
-            p2 = tmp_p2;
-            most_low_count = similarity;
-            index_of_the_most_close = i;
+        int similarity = array_comp(tmp_concepts, C_in_round_indexes, &tmp_p1, &tmp_p2);
+        if ((similarity <= min_count) && (tmp_p1 < tmp_p2) && (abs(tmp_p1+tmp_p2 -20) < abs(p1 + p2 - 20)) ){
+            p1 = tmp_p1; p2 = tmp_p2;
+            min_count = similarity;
+            target_index = word_index;
         }
     }
-    int p = 10 - p1;  // l'estimation du paramètre p choisi par la déesse 
+    int p = 10 - p1; // Init p
 
-    // ---> recuperation des informations des autres pythies pour la dernière round de la phase 1
     set_player_info_in_each_round(NJ);
 
-    // Algorithme pour faire une estimation de a, b, c
-    int total_of_combinnations = 0;
-    int is_bad_combinations = 0;
-    int ma=0, mb=0, mc=0;
-    
-    for (int a = 1; a <= 100; a+=PRECISION){
-        for (int b = 1; b <= 100; b+=PRECISION){
-            for (int c = 1; c <= 100; c+=PRECISION){
-                is_bad_combinations = 0;
-                for (int k = 0; k < ROUNDS_NB-1; k++){
-                    if (is_formula_is_gretter_than_next(C_in_round_indexes[k], C_in_round_indexes[k+1], C, index_of_the_most_close, all_W_and_S, a, b, c)){
-                        is_bad_combinations = 1;
-                        break; 
-                    }
-                }
-                if (is_bad_combinations == 0){
-                    ma += a;
-                    mb += b; 
-                    mc += c;
-                    total_of_combinnations++;                
-                }
-            }
-        }
-    }
-    int a_estim = total_of_combinnations != 0 ? ma/total_of_combinnations : 0;
-    int b_estim = total_of_combinnations != 0 ? mb/total_of_combinnations : 0;
-    int c_estim = total_of_combinnations != 0 ? mc/total_of_combinnations : 0;
+    int a = 0, b = 0, c = 0;
+    set_a_b_c_variables(&a, &b, &c, C_in_round_indexes, target_index, all_W_and_S, C);
 
-//================>>>>>> PHASE 2, 3, 4, 5
-
+    /* ALL STEPS */
     for (int step = 0; step < STEPS; step++){
+        // TODO
         int words[WORDS_NB] = {0};
         int is_great_word = 0;
-        char concept_by_goddess[16];
-        char new_concept_by_goddess[16];
+        char concept_by_goddess[CONCEPT_SIZE];
+        char new_concept_by_goddess[CONCEPT_SIZE];
         int concept_by_goddess_index = -1;
         int new_concept_by_goddess_index = -1;
-        // Récupérer les informations de la phase en cours pour tous les joueurs
-        set_player_info(NJ);
+
+        set_player_info_at_start(NJ);
         
-        // Toutes les rounds d'une phase
+        // EACH ROUNDS
         for (int round = 0; round < ROUNDS_NB; round++){
+            // TODO
             // Récupération du concept donnée par la déesse 
             readStdin(new_concept_by_goddess, &new_concept_by_goddess_index, C);
 
             // Algorithme pour éliminer les mots qu'on sait qu'ils sont mauvais au fur et à mésure qu'on reçoit les C de la déesse
             for (int i = 0; i < WORDS_NB; i++){
                 struct W_and_S my_W_and_S = all_W_and_S[i];
-                int extract[CONCEPTS_NB];
-                init_algo(my_W_and_S, extract);
-                int index_of_received_concept = get_target_array_index(new_concept_by_goddess_index, extract, CONCEPTS_NB);
+                int tmp_concepts[CONCEPTS_NB];
+                init_algo(my_W_and_S, tmp_concepts);
+                int index_of_received_concept = get_target_array_index(new_concept_by_goddess_index, tmp_concepts, CONCEPTS_NB);
                 
                 // elemination du mot s'il est mauvais en utilisant le paramètre p estimé auparavant
                 // on elimine le mot, si on trouve que le concept reçu n'apartient ni aux 10-p premiers C ni aux 10+p derniers C
                 if (index_of_received_concept >= (10-p) && (index_of_received_concept <= 49-10-p)) words[i] = 1;
                 
                 // elemination du mot s'il est mauvais en utilisant les paramètres a, b, c estimés auparavant
-                if (concept_by_goddess_index != -1 && !is_formula_is_gretter_than_next(new_concept_by_goddess_index, concept_by_goddess_index, C, i, all_W_and_S, a_estim, b_estim, c_estim)) words[i] = 1;
+                if (concept_by_goddess_index != -1 && !is_formula_is_gretter_than_next(new_concept_by_goddess_index, concept_by_goddess_index, C, i, all_W_and_S, a, b, c)) words[i] = 1;
             }
 
             // S'il ne reste qu'on mot non eliminé, c'est qu'il est probablement le bon mot

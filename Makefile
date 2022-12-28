@@ -5,10 +5,13 @@ gccww = gcc -Wall -Wextra -std=c99
 all : compile main
 
 init : 
-	$(java CMD) -b3 -b2 
+	$(javaCMD) -b3 -b4
 
 main : jars html
-	$(javaCMD) C:code/main -b3 -b2
+	$(javaCMD) C:code/main -b2 -b3
+
+help : jars html
+	$(javaCMD) -h
 
 php : html
 	php -S $(localhost) &
