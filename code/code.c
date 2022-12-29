@@ -177,6 +177,7 @@ int get_target_array_index(int target, int * arr, int size){
  * @param (int*)    p_substraction
  * @param (int*)    p_addition
  * @return int
+ * TODO
 */
 int get_similar_values_between_two_concepts_and_set_p_substraction_and_p_addition(int * tmp_concepts, int * save_concepts_indexes, int * p_substraction, int * p_addition){
     int concepts[CONCEPTS_NB] = {0};
