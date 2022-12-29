@@ -371,6 +371,7 @@ int main(void){
     int     save_concepts_index;
 
     /* ALL STEPS */
+    int phase = 1;
     while(1) {            
         // EACH ROUNDS
         char * guess_word = (char *) malloc(MAX_WORD_SIZE * sizeof(char));
@@ -431,7 +432,13 @@ int main(void){
             save_concepts_index = current_concepts_index;
             copy_string(current_concepts, save_concepts);
         }
-        free(guess_word);
+        
+        phase++;
+
+        if(phase > 5) {
+            free(guess_word);
+            break;
+        }
     }
 
     return EXIT_SUCCESS;
