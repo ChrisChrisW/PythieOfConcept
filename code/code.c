@@ -182,12 +182,9 @@ void set_a_b_c_variables(int * a, int * b, int * c, int * C_in_round_indexes, in
  * @return void
 */
 void set_player_info_at_start(int players_number){
-    char * line;
-    for (int player = 0; player < players_number; player++) {
-        fgets(line, players_number, stdin);
-        int J, P, END;
-        sscanf(line, "%d %d %d", &J, &P, &END);
-    }
+    int J, P, END;
+    for (int player = 0; player < players_number; player++)
+        scanf("%d %d %d ", &J, &P, &END);
 }
 
 /**
@@ -393,7 +390,7 @@ int main(void){
             for (int word_index = 0; word_index < WORDS_NB; word_index++){
                 W_and_S my_W_and_S = all_W_and_S[word_index];
                 int tmp_concepts[CONCEPTS_NB];
-                init_algo(my_W_and_S, tmp_concepts);
+                populate_tmp_concepts_array(my_W_and_S, tmp_concepts);
                 
                 // delete wrong word not to be between p1 and p2 => p
                 int target_index = get_target_array_index(current_concepts_index, tmp_concepts, CONCEPTS_NB);
