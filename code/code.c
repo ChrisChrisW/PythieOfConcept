@@ -182,9 +182,12 @@ void set_a_b_c_variables(int * a, int * b, int * c, int * C_in_round_indexes, in
  * @return void
 */
 void set_player_info_at_start(int players_number){
-    int J, P, END;
-    for (int player = 0; player < players_number; player++)
-        scanf("%d %d %d ", &J, &P, &END);
+    char * line;
+    for (int player = 0; player < players_number; player++) {
+        fgets(line, players_number, stdin);
+        int J, P, END;
+        sscanf(line, "%d %d %d", &J, &P, &END);
+    }
 }
 
 /**
@@ -322,6 +325,7 @@ int main(void){
     }
     
     // Init W S0..Sn
+    // Can't sscanf...
     W_and_S all_W_and_S[WORDS_NB];
     for (int word_index = 0; word_index < WORDS_NB; word_index++){
         scanf("%s", all_W_and_S[word_index].word); // init W
