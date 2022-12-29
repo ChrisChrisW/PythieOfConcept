@@ -2,16 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CONCEPTS_NB 50
-#define MAX_CONCEPT_SIZE 16
+#define CONCEPTS_NB         50
+#define MAX_CONCEPT_SIZE    16
 
-#define WORDS_NB 1000
-#define SCORES_NB 50
-#define MAX_WORD_SIZE 26
+#define WORDS_NB            1000
+#define SCORES_NB           50
+#define MAX_WORD_SIZE       26
 
-#define ROUNDS_NB 20
+#define ROUNDS_NB           20
 
-#define CALIBRATION 5
+#define STEPS               5
 
 /**
  * NJ J
@@ -170,46 +170,61 @@ int compare_concepts(int concept_index, int concept_next_index, char C[CONCEPTS_
  * @param (int*)                a
  * @param (int*)                b
  * @param (int*)                c
- * @param (int*)                C_in_round_indexes
+ * @param (int*)                save_concepts_indexes
  * @param int                   target_index
  * @param (W_and_S *)    my_W_and_S
  * @param (char**)              C
  * @return void
 */
-void set_a_b_c_variables(int * a, int * b, int * c, int * C_in_round_indexes, int target_index, W_and_S * all_W_and_S, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE]){
-    int is_great_combinations = 0; // bool
-    int total_of_combinnations = 0;
-    int sum_a = 0, sum_b = 0, sum_c = 0;
-    int max = 100;
 
-    for (int a_value = 1; a_value <= max; a_value+=CALIBRATION){
-        for (int b_value = 1; b_value <= max; b_value+=CALIBRATION){
-            for (int c_value = 1; c_value <= max; c_value+=CALIBRATION){
-                is_great_combinations = 0;
+int get_target_index(W_and_S* array, int array_size, char* target) {
+    int start = 0;
+    int end = array_size - 1;
+    while (start <= end) {
+        int mid = (start + end) / 2;
+        int compare = strcmp(array[mid].word, target);
+        if (compare == 0) {
+            return mid;
+        } else if (compare < 0) {
+            start = mid + 1;
+        } else {
+            end = mid - 1;
+        }
+    }
+    return -1;
+}
 
-                for (int r = 0; r < ROUNDS_NB; r++){
-                    if (compare_concepts(C_in_round_indexes[r], C_in_round_indexes[r + 1], C, target_index, all_W_and_S, a_value, b_value, c_value)){
-                        is_great_combinations = 1; break; 
-                    }
-                }
-                
-                if (is_great_combinations == 0){
-                    sum_a += a_value;
-                    sum_b += b_value; 
-                    sum_c += c_value;
-                    total_of_combinnations++;                
-                }
-            }
+void set_a_b_c_variables(int * a, int * b, int * c, int * save_concepts_indexes, int target_index){
+/////
+    // *a = save_concepts_indexes[target_index] * 0.5;
+    // *b = save_concepts_indexes[target_index] * 0.8;
+    // *c = save_concepts_indexes[target_index] * 0.3;
+
+/////
+    int count_concept_in_round = 0;
+    int tmp_a = 0, tmp_b = 0, tmp_c = 0;
+
+    for (int concept_index = 0; concept_index < CONCEPTS_NB; concept_index++){
+        if (save_concepts_indexes[concept_index] == target_index){
+            count_concept_in_round++;
+
+            if (count_concept_in_round == 1) tmp_a = concept_index;
+            else if (count_concept_in_round == 2) tmp_b = concept_index;
+            else if (count_concept_in_round == 3) tmp_c = concept_index;
         }
     }
 
-    // set a, b and c with average method
-    if(total_of_combinnations > 0){
-        *a = sum_a / total_of_combinnations;
-        *b = sum_b / total_of_combinnations;
-        *c = sum_c / total_of_combinnations;
+    *a = tmp_a; *b = tmp_b; *c = tmp_c;
+
+    if (count_concept_in_round == 1) {
+        *b = -1;
+        *c = -1;
     }
+    else if (count_concept_in_round == 2)
+        *c = -1;
 }
+
+
 
 /**
  * Read stdin value with fgets method
@@ -251,17 +266,17 @@ int get_target_array_index(int target, int * arr, int size){
  * set p_substraction and p_addition
  * 
  * @param (int*)    tmp_concepts
- * @param (int*)    C_in_round_indexes
+ * @param (int*)    save_concepts_indexes
  * @param (int*)    p_substraction
  * @param (int*)    p_addition
  * @return int
 */
-int get_similar_values_between_two_concepts_and_set_p_substraction_and_p_addition(int * tmp_concepts, int * C_in_round_indexes, int * p_substraction, int * p_addition){
+int get_similar_values_between_two_concepts_and_set_p_substraction_and_p_addition(int * tmp_concepts, int * save_concepts_indexes, int * p_substraction, int * p_addition){
     int concepts[CONCEPTS_NB] = {0};
     
     for (int r = 0; r < ROUNDS_NB; r++){
         for (int c = 0; c < CONCEPTS_NB; c++){
-            if (tmp_concepts[c] == C_in_round_indexes[r]){
+            if (tmp_concepts[c] == save_concepts_indexes[r]){
                 concepts[c] = 1; break;
             }
         }
@@ -348,42 +363,29 @@ int main(void){
     Pythie_status_at_start Pythie_status_at_start;
     // Init W J ST
     Pythie_status_in_round Pythie_status_in_round;
-
-    /* STEP 1 */
-
-    set_player_info_at_start(NJ_and_J, Pythie_status_at_start);
-    
-    // Get concept in each rounds in 1rd step
-    char C_in_round[ROUNDS_NB][MAX_CONCEPT_SIZE];
-    int C_in_round_indexes[ROUNDS_NB];
-    for (int round = 0; round < ROUNDS_NB; round++){
-        readStdin(C_in_round[round], &C_in_round_indexes[round], C);
-        printf("PASS\n"); fflush(stdout); // debug
-        set_player_info_in_each_round(NJ_and_J, Pythie_status_in_round);
-    }
         
     int     a = 0, b = 0, c = 0;
     int     p = 7; // Init p, between 3 and 7
     int     p_substraction, p_addition; // (10 - p), (10 + p)
     int     min_count = 0, count_similar_value = 0;
-    int     target_index;
-    char    save_concepts[MAX_CONCEPT_SIZE];
-    int     save_concepts_index;
+    char    save_concepts[ROUNDS_NB][MAX_CONCEPT_SIZE];
+    int     save_concepts_indexes[ROUNDS_NB];
 
     /* ALL STEPS */
-    int phase = 1;
-    while(1) {            
-        // EACH ROUNDS
-        char * guess_word = (char *) malloc(MAX_WORD_SIZE * sizeof(char));
+    for (int step = 0; step < STEPS; step++){
         int is_great_word = 0; // bool
         int words[WORDS_NB] = {0};
         char current_concepts[MAX_CONCEPT_SIZE];
         int current_concepts_index;
 
+        // EACH ROUNDS
         set_player_info_at_start(NJ_and_J, Pythie_status_at_start);
-        
         for (int round = 0; round < ROUNDS_NB; round++){
             readStdin(current_concepts, &current_concepts_index, C);
+
+            // Get concept in each rounds
+            save_concepts_indexes[round] = current_concepts_index;
+            *save_concepts[round] = *current_concepts;
 
             // Loop to calibrate p and to delete wrong word
             for (int word_index = 0; word_index < WORDS_NB; word_index++){
@@ -393,15 +395,15 @@ int main(void){
                 
                 // Calibrate p and search word
                 int current_p_substraction, current_p_addition;
-                count_similar_value = get_similar_values_between_two_concepts_and_set_p_substraction_and_p_addition(tmp_concepts, C_in_round_indexes, &current_p_substraction, &current_p_addition);
+                count_similar_value = get_similar_values_between_two_concepts_and_set_p_substraction_and_p_addition(tmp_concepts, save_concepts_indexes, &current_p_substraction, &current_p_addition);
                 if(count_similar_value <= min_count){
                     int sum_current_p = current_p_substraction + current_p_addition;
                     int sum_p = p_substraction + p_addition;
+
                     if (abs(sum_current_p - 20) < abs(sum_p - 20)){
                         min_count = count_similar_value;
 
-                        target_index = word_index;
-                        set_a_b_c_variables(&a, &b, &c, C_in_round_indexes, target_index, all_W_and_S, C);
+                        set_a_b_c_variables(&a, &b, &c, save_concepts_indexes, word_index);
 
                         p_addition = current_p_addition;
                         p_substraction = current_p_substraction; 
@@ -413,7 +415,7 @@ int main(void){
                 int target_index = get_target_array_index(current_concepts_index, tmp_concepts, CONCEPTS_NB);
                 if (target_index >= (10 - p) && (target_index <= ((CONCEPTS_NB - 1) - (10 + p)))) words[word_index] = 1;
                 // delete wrong word with formula
-                if (save_concepts_index != -1 && !compare_concepts(current_concepts_index, save_concepts_index, C, word_index, all_W_and_S, a, b, c)) words[word_index] = 1;
+                if (save_concepts_indexes[round - 1] != -1 && !compare_concepts(current_concepts_index, save_concepts_indexes[round - 1], C, word_index, all_W_and_S, a, b, c)) words[word_index] = 1;
             }
             
             // Find the last one
@@ -423,21 +425,13 @@ int main(void){
             // GUESS OR PASS
             if (is_great_word == 0 && sum_words == (WORDS_NB - 1)){
                 int target_index = get_target_array_index(0, words, WORDS_NB);
-                printf("GUESS %s\n", all_W_and_S[target_index].word); // guess word
+                char * guess_word = all_W_and_S[target_index].word;
+                printf("GUESS %s\n", guess_word);
                 is_great_word = 1;
             } else printf("PASS\n");
             fflush(stdout);
-            set_player_info_in_each_round(NJ_and_J, Pythie_status_in_round);
-            
-            save_concepts_index = current_concepts_index;
-            copy_string(current_concepts, save_concepts);
-        }
-        
-        phase++;
 
-        if(phase > 5) {
-            free(guess_word);
-            break;
+            set_player_info_in_each_round(NJ_and_J, Pythie_status_in_round);
         }
     }
 
