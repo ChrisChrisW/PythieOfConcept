@@ -23,75 +23,44 @@ typedef struct {
 } W_and_S;
 
 /**
- * Return target score
- * 
- * @param int target
- * @param (int*) scores
- * @param int last_target_score
- * @param int last_target_index
- * @return int
-*/
-int get_score(int target, int * scores, int last_target_score, int last_target_index){
-    for (int score = 0; score < CONCEPTS_NB; score++){
-        if (scores[score] == target && (last_target_score != target || score > last_target_index)) return score;
-    }
-    return -1;
-}
-
-/**
- * Sort scores array in ascending order
- * 
- * @param (int*) scores
- * @return void
-*/
-void sort_scores(int * scores){
-    int temp;
-    for (int i = 0; i < CONCEPTS_NB - 1; i++) {
-        for (int j = 0; j < CONCEPTS_NB - i - 1; j++) {
-            if (scores[j] > scores[j + 1]) {
-                temp = scores[j];
-                scores[j] = scores[j + 1];
-                scores[j + 1] = temp;
-            }
-        }
-    }
-}
-
-/**
- * Sort tmp_concepts with scores from W_and_S
+ * Sorts an array of scores in ascending order,
+ * then populates another array with the indices of the original scores array in the sorted order.
  * 
  * @param (W_and_S) my_W_and_S
  * @param (int*) tmp_concepts
  * @return void
 */
-void init_algo(W_and_S my_W_and_S, int tmp_concepts[CONCEPTS_NB]){
-    // Make a copy
+void populate_tmp_concepts_array(W_and_S my_W_and_S, int tmp_concepts[CONCEPTS_NB]) {
+    // Make a copy of the scores array
     int scores[CONCEPTS_NB];
-    for (int concept_index = 0; concept_index < CONCEPTS_NB; concept_index++)
-        scores[concept_index] = my_W_and_S.scores[concept_index];
+    for (int i = 0; i < CONCEPTS_NB; i++)
+        scores[i] = my_W_and_S.scores[i];
 
-    // Sort scores variable
-    sort_scores(scores);
-    
-    int temp;
+    // Sort the scores array in ascending order
     for (int i = 0; i < CONCEPTS_NB - 1; i++) {
-        for (int j = 0; j < CONCEPTS_NB - i - 1; j++) {
+        for (int j = 0; j < CONCEPTS_NB - i - 1; j++){
             if (scores[j] > scores[j + 1]) {
-                temp = scores[j];
+                int temp = scores[j];
                 scores[j] = scores[j + 1];
                 scores[j + 1] = temp;
             }
         }
     }
 
-    // Sort tmp_concepts variable
-    int last_target_score, last_target_index;
-    for (int concept_index = 0; concept_index < CONCEPTS_NB; concept_index++){
-        int target = scores[concept_index];
-        tmp_concepts[concept_index] = get_score(target, my_W_and_S.scores, last_target_score, last_target_index);
+    // Populate the tmp_concepts array using the sorted scores array
+    int last_target_score = 0, last_target_index = 0;
+    for (int i = 0; i < CONCEPTS_NB; i++) {
+        int target_score = scores[i];
+        // Find the index of the target score in the original scores array
+        for (int j = 0; j < CONCEPTS_NB; j++) {
+            if (my_W_and_S.scores[j] == target_score && (last_target_score != target_score || j > last_target_index)) {
+                tmp_concepts[i] = j;
+                break;
+            }
+        }
 
-        last_target_score = target;
-        last_target_index = tmp_concepts[concept_index];
+        last_target_score = target_score;
+        last_target_index = tmp_concepts[i];
     }
 }
 
@@ -383,7 +352,7 @@ int main(void){
     for (int word_index = 0; word_index < WORDS_NB; word_index++){
         W_and_S my_W_and_S = all_W_and_S[word_index];
         int tmp_concepts[CONCEPTS_NB];
-        init_algo(my_W_and_S, tmp_concepts); // sort tmp_concepts
+        populate_tmp_concepts_array(my_W_and_S, tmp_concepts); // sort tmp_concepts
         
         // Init p1 and p2
         int tmp_p1, tmp_p2;
