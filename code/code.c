@@ -2,16 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CONCEPTS_NB         50
-#define MAX_CONCEPT_SIZE    16
+#define CONCEPTS_NB 50
+#define MAX_CONCEPT_SIZE 16
 
-#define WORDS_NB            1000
-#define SCORES_NB           50
-#define MAX_WORD_SIZE       26
+#define WORDS_NB 1000
+#define SCORES_NB 50
+#define MAX_WORD_SIZE 26
 
-#define ROUNDS_NB           20
+#define ROUNDS_NB 20
 
-#define STEPS               5
+#define STEPS 5
 
 /**
  * NJ J
@@ -47,36 +47,6 @@ typedef struct {
     int J;
     int ST;
 } Pythie_status_in_round;
-
-/**
- * Set player/pythie info at start
- * 
- * @param NJ_and_J NJ_and_J
- * @param Pythie_status_at_start Pythie_status_at_start
- * @return void
-*/
-void set_player_info_at_start(NJ_and_J NJ_and_J, Pythie_status_at_start Pythie_status_at_start){
-    for (int player = 0; player < NJ_and_J.NJ; player++) {
-        if (fscanf(stdin, "%d %d %d ", &(Pythie_status_at_start.J), &(Pythie_status_at_start.P), &(Pythie_status_at_start.END)) != 3) {
-            fprintf(stderr, "Error reading player/pythie info at start\n");
-        }
-    }
-}
-
-/**
- * Set player/pythie info data in each round
- * 
- * @param NJ_and_J NJ_and_J
- * @param Pythie_status_in_round Pythie_status_in_round
- * @return void
-*/
-void set_player_info_in_each_round(NJ_and_J NJ_and_J, Pythie_status_in_round Pythie_status_in_round){
-    for (int player = 0; player < NJ_and_J.NJ; player++) {
-        if (fscanf(stdin, "%s %d %d ", Pythie_status_in_round.W, &(Pythie_status_in_round.J), &(Pythie_status_in_round.ST)) != 3) {
-            fprintf(stderr, "Error reading player/pythie info in each round\n");
-        }
-    }
-}
 
 /**
  * Sorts an array of scores in ascending order,
@@ -122,46 +92,26 @@ void populate_tmp_concepts_array(W_and_S my_W_and_S, int tmp_concepts[CONCEPTS_N
 
 /**
  * 
- * @param (char*)               word
+ * @param W_and_S               W_and_S
+ * @param int                   target_index
  * @param (char*)               concept
- * @param int                   s
  * @param int                   a
  * @param int                   b
  * @param int                   c
  * @return int
 */
-int calculate_formula_value(char * word, char * concept, int s, int a, int b, int c) {
-    int t = 0;
+int calculate_formula_value(W_and_S W_and_S, int target_index, char * concept, int a, int b, int c){
+    char *word = W_and_S.word;
     int u = strlen(word) - strlen(concept);
 
+    int t = 0;
     // Compare the word and concept strings
     while (word[t] == concept[t]) t++;
-
     t = strlen(word) - t;
 
+    int s = W_and_S.scores[target_index];
+
     return a * s + 10 * b * t + 10 * c * u;
-}
-
-/**
- * @param int                   concept_index
- * @param int                   concept_next_index
- * @param (char**)              C
- * @param int                   word_index
- * @param (W_and_S *)    my_W_and_S
- * @param int                   a
- * @param int                   b
- * @param int                   c
- * @return int 
-*/
-int compare_concepts(int concept_index, int concept_next_index, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE], int word_index, W_and_S all_W_and_S[WORDS_NB], int a, int b, int c) {
-    char *word = all_W_and_S[word_index].word;
-    int s = all_W_and_S[word_index].scores[concept_index];
-
-    int f_current_value = calculate_formula_value(word, C[concept_index], s, a, b, c);
-    int f_next_value = calculate_formula_value(word, C[concept_next_index], s, a, b, c);
-
-    if(f_current_value < f_next_value) return 0;
-    return 1;
 }
 
 /**
@@ -172,34 +122,13 @@ int compare_concepts(int concept_index, int concept_next_index, char C[CONCEPTS_
  * @param (int*)                c
  * @param (int*)                save_concepts_indexes
  * @param int                   target_index
- * @param (W_and_S *)    my_W_and_S
- * @param (char**)              C
  * @return void
 */
-
-int get_target_index(W_and_S* array, int array_size, char* target) {
-    int start = 0;
-    int end = array_size - 1;
-    while (start <= end) {
-        int mid = (start + end) / 2;
-        int compare = strcmp(array[mid].word, target);
-        if (compare == 0) {
-            return mid;
-        } else if (compare < 0) {
-            start = mid + 1;
-        } else {
-            end = mid - 1;
-        }
-    }
-    return -1;
-}
-
 void set_a_b_c_variables(int * a, int * b, int * c, int * save_concepts_indexes, int target_index){
 /////
     // *a = save_concepts_indexes[target_index] * 0.5;
     // *b = save_concepts_indexes[target_index] * 0.8;
     // *c = save_concepts_indexes[target_index] * 0.3;
-
 /////
     int count_concept_in_round = 0;
     int tmp_a = 0, tmp_b = 0, tmp_c = 0;
@@ -222,28 +151,6 @@ void set_a_b_c_variables(int * a, int * b, int * c, int * save_concepts_indexes,
     }
     else if (count_concept_in_round == 2)
         *c = -1;
-}
-
-
-
-/**
- * Read stdin value with fgets method
- * 
- * @param (char*)   concept
- * @param (int*)    concept_index
- * @param (char**)  C
- * @return void 
-*/
-void readStdin(char * concept, int * concept_index, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE]){
-    fgets(concept, CONCEPTS_NB, stdin);
-    char *newline = strtok(concept, "\n"); 
-    if (newline != NULL) strcpy(concept, newline); // delete all \n
-
-    // get index of C
-    *concept_index = -1;
-    for (int i = 0; i < CONCEPTS_NB; i++){
-        if (strcmp(C[i], concept) == 0) *concept_index = i;
-    }
 }
 
 /**
@@ -307,15 +214,6 @@ int get_similar_values_between_two_concepts_and_set_p_substraction_and_p_additio
     return count;
 }
 
-void copy_string(char *source, char *destination) {
-    int i = 0;
-    while (source[i] != '\0') {
-        destination[i] = source[i];
-        i++;
-    }
-    destination[i] = '\0';
-}
-
 /**
  * Main function
  * 
@@ -329,11 +227,11 @@ int main(void){
     // Init NJ J
     NJ_and_J NJ_and_J;
     if (fgets(input, sizeof(input), stdin) == NULL) {
-        fprintf(stderr, "Error reading input\n");
+        fprintf(stderr, "Error fgets input\n");
         return EXIT_FAILURE;
     }
     if (sscanf(input, "%d %d", &(NJ_and_J.NJ), &(NJ_and_J.J)) != 2) {
-        fprintf(stderr, "Error parsing input when we init pythie\n");
+        fprintf(stderr, "Error sscanf NJ J\n");
         return EXIT_FAILURE;
     }
 
@@ -341,7 +239,7 @@ int main(void){
     char C[CONCEPTS_NB][MAX_CONCEPT_SIZE];
     for (int concept_index = 0; concept_index < CONCEPTS_NB; concept_index++) {
         if (fgets(input, sizeof(input), stdin) == NULL) {
-            fprintf(stderr, "Error reading input when we init concept\n");
+            fprintf(stderr, "Error fgets C values\n");
             return EXIT_FAILURE;
         }
         sscanf(input, "%15s", C[concept_index]);
@@ -364,28 +262,32 @@ int main(void){
     // Init W J ST
     Pythie_status_in_round Pythie_status_in_round;
         
-    int     a = 0, b = 0, c = 0;
-    int     p = 7; // Init p, between 3 and 7
-    int     p_substraction, p_addition; // (10 - p), (10 + p)
-    int     min_count = 0, count_similar_value = 0;
-    char    save_concepts[ROUNDS_NB][MAX_CONCEPT_SIZE];
-    int     save_concepts_indexes[ROUNDS_NB];
+    int a = 0, b = 0, c = 0;
+    int p = 7; // Init p, between 3 and 7
+    int p_substraction, p_addition; // (10 - p), (10 + p)
+    int min_count = 0, count_similar_value = 0;
+    int save_concepts_indexes[ROUNDS_NB];
 
     /* ALL STEPS */
     for (int step = 0; step < STEPS; step++){
         int is_great_word = 0; // bool
         int words[WORDS_NB] = {0};
-        char current_concepts[MAX_CONCEPT_SIZE];
-        int current_concepts_index;
+
+        // Set player/pythie info at start
+        for (int player = 0; player < NJ_and_J.NJ; player++) {
+            if (fscanf(stdin, "%d %d %d ", &(Pythie_status_at_start.J), &(Pythie_status_at_start.P), &(Pythie_status_at_start.END)) != 3) {
+                fprintf(stderr, "Error fscanf player/pythie info at start\n");
+            }
+        }
 
         // EACH ROUNDS
-        set_player_info_at_start(NJ_and_J, Pythie_status_at_start);
         for (int round = 0; round < ROUNDS_NB; round++){
-            readStdin(current_concepts, &current_concepts_index, C);
-
-            // Get concept in each rounds
-            save_concepts_indexes[round] = current_concepts_index;
-            *save_concepts[round] = *current_concepts;
+            // Get concept index in each rounds
+            fgets(input, CONCEPTS_NB, stdin);
+            char *newline = strtok(input, "\n"); 
+            if (newline != NULL) strcpy(input, newline); // delete all \n
+            for (int i = 0; i < CONCEPTS_NB; i++)
+                if (strcmp(C[i], input) == 0) save_concepts_indexes[round] = i;
 
             // Loop to calibrate p and to delete wrong word
             for (int word_index = 0; word_index < WORDS_NB; word_index++){
@@ -412,10 +314,13 @@ int main(void){
                 }
 
                 // delete wrong word not to be between p_substraction and p_addition => p
-                int target_index = get_target_array_index(current_concepts_index, tmp_concepts, CONCEPTS_NB);
+                int target_index = get_target_array_index(save_concepts_indexes[round], tmp_concepts, CONCEPTS_NB);
                 if (target_index >= (10 - p) && (target_index <= ((CONCEPTS_NB - 1) - (10 + p)))) words[word_index] = 1;
+                
                 // delete wrong word with formula
-                if (save_concepts_indexes[round - 1] != -1 && !compare_concepts(current_concepts_index, save_concepts_indexes[round - 1], C, word_index, all_W_and_S, a, b, c)) words[word_index] = 1;
+                int f_current_value = calculate_formula_value(my_W_and_S, word_index, C[save_concepts_indexes[round - 1]], a, b, c);
+                int f_next_value = calculate_formula_value(my_W_and_S, word_index, C[save_concepts_indexes[round]], a, b, c);
+                if (save_concepts_indexes[round - 1] != -1 && (f_current_value > f_next_value)) words[word_index] = 1;
             }
             
             // Find the last one
@@ -424,14 +329,19 @@ int main(void){
 
             // GUESS OR PASS
             if (is_great_word == 0 && sum_words == (WORDS_NB - 1)){
+                is_great_word = 1;
                 int target_index = get_target_array_index(0, words, WORDS_NB);
                 char * guess_word = all_W_and_S[target_index].word;
                 printf("GUESS %s\n", guess_word);
-                is_great_word = 1;
             } else printf("PASS\n");
             fflush(stdout);
 
-            set_player_info_in_each_round(NJ_and_J, Pythie_status_in_round);
+            // Set player/pythie info data in each round
+            for (int player = 0; player < NJ_and_J.NJ; player++) {
+                if (fscanf(stdin, "%s %d %d ", Pythie_status_in_round.W, &(Pythie_status_in_round.J), &(Pythie_status_in_round.ST)) != 3) {
+                    fprintf(stderr, "Error fscanf player/pythie info in each round\n");
+                }
+            }
         }
     }
 
