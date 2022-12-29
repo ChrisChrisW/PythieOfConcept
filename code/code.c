@@ -17,10 +17,10 @@
 /**
  * W S0..Sn variables
 */
-struct W_and_S{
+typedef struct {
     char word[MAX_WORD_SIZE];
     int scores[CONCEPTS_NB];
-};
+} W_and_S;
 
 /**
  * Return target score
@@ -39,34 +39,51 @@ int get_score(int target, int * scores, int last_target_score, int last_target_i
 }
 
 /**
- * https://koor.fr/C/cstdlib/qsort.wp
+ * Sort scores array in ascending order
  * 
- * @param (const void*) first
- * @param (const void*) second
- * @return int
+ * @param (int*) scores
+ * @return void
 */
-int intComparator(const void * first, const void * second){
-    int first_int = * (const int *) first;
-    int second_int = * (const int *) second;
-    return first_int - second_int;
+void sort_scores(int * scores){
+    int temp;
+    for (int i = 0; i < CONCEPTS_NB - 1; i++) {
+        for (int j = 0; j < CONCEPTS_NB - i - 1; j++) {
+            if (scores[j] > scores[j + 1]) {
+                temp = scores[j];
+                scores[j] = scores[j + 1];
+                scores[j + 1] = temp;
+            }
+        }
+    }
 }
 
 /**
- * Sort tmp_concepts with scores from W_and_S struct
+ * Sort tmp_concepts with scores from W_and_S
  * 
- * @param (struct W_and_S) my_W_and_S
+ * @param (W_and_S) my_W_and_S
  * @param (int*) tmp_concepts
  * @return void
 */
-void init_algo(struct W_and_S my_W_and_S, int tmp_concepts[CONCEPTS_NB]){
+void init_algo(W_and_S my_W_and_S, int tmp_concepts[CONCEPTS_NB]){
     // Make a copy
     int scores[CONCEPTS_NB];
     for (int concept_index = 0; concept_index < CONCEPTS_NB; concept_index++)
         scores[concept_index] = my_W_and_S.scores[concept_index];
 
     // Sort scores variable
-    qsort(scores, CONCEPTS_NB, sizeof(int), intComparator);
-        
+    sort_scores(scores);
+    
+    int temp;
+    for (int i = 0; i < CONCEPTS_NB - 1; i++) {
+        for (int j = 0; j < CONCEPTS_NB - i - 1; j++) {
+            if (scores[j] > scores[j + 1]) {
+                temp = scores[j];
+                scores[j] = scores[j + 1];
+                scores[j + 1] = temp;
+            }
+        }
+    }
+
     // Sort tmp_concepts variable
     int last_target_score, last_target_index;
     for (int concept_index = 0; concept_index < CONCEPTS_NB; concept_index++){
@@ -78,6 +95,22 @@ void init_algo(struct W_and_S my_W_and_S, int tmp_concepts[CONCEPTS_NB]){
     }
 }
 
+int calculate_t(char *word, char *target_concept) {
+    int t = 0;
+
+    // Compare the word and target_concept strings
+    int result = strcmp(word, target_concept);
+    if (result != 0) {
+        // Count the number of characters that are different
+        while (word[t] == target_concept[t]) {
+            t++;
+        }
+        t = strlen(word) - t;
+    }
+
+    return t;
+}
+
 /**
  * Formula
  * init s, t and u
@@ -85,25 +118,22 @@ void init_algo(struct W_and_S my_W_and_S, int tmp_concepts[CONCEPTS_NB]){
  * @param int                   concept_index
  * @param (char**)              C
  * @param int                   word_index
- * @param (struct W_and_S *)    my_W_and_S
+ * @param (W_and_S *)    my_W_and_S
  * @param int                   a
  * @param int                   b
  * @param int                   c
  * @return int
 */
-int formula(int target_concept_index, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE], int word_index, struct W_and_S all_W_and_S[WORDS_NB], int a, int b, int c){
+int formula(int target_concept_index, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE], int word_index, W_and_S all_W_and_S[WORDS_NB], int a, int b, int c){
     char *word = all_W_and_S[word_index].word;
     char *target_concept = C[target_concept_index];
 
     int s = all_W_and_S[word_index].scores[target_concept_index];
     
-    int t = 0;
-    while (*word != '\0'){
-        if (*word != *target_concept) t++;
-        word++; // next letter
-    }
+    int t = calculate_t(word, target_concept);
 
-    int u = abs((int)(strlen(word) - strlen(target_concept)));
+    int u = strlen(word) - strlen(target_concept);
+    if(u < 0) u = -u;
 
     return a*s + 10*b*t + 10*c*u;
 }
@@ -115,13 +145,13 @@ int formula(int target_concept_index, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE], int
  * @param int                   concept_next_index
  * @param (char**)              C
  * @param int                   word_index
- * @param (struct W_and_S *)    my_W_and_S
+ * @param (W_and_S *)    my_W_and_S
  * @param int                   a
  * @param int                   b
  * @param int                   c
  * @return int 
 */
-int is_formula_is_gretter_than_next(int concept_index, int concept_next_index, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE], int word_index, struct W_and_S all_W_and_S[WORDS_NB], int a, int b, int c){
+int is_formula_is_gretter_than_next(int concept_index, int concept_next_index, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE], int word_index, W_and_S all_W_and_S[WORDS_NB], int a, int b, int c){
     int f_current_value = formula(concept_index, C, word_index, all_W_and_S, a, b, c);
     int f_next_value = formula(concept_next_index, C, word_index, all_W_and_S, a, b, c);
 
@@ -137,11 +167,11 @@ int is_formula_is_gretter_than_next(int concept_index, int concept_next_index, c
  * @param (int*)                c
  * @param (int*)                C_in_round_indexes
  * @param int                   target_index
- * @param (struct W_and_S *)    my_W_and_S
+ * @param (W_and_S *)    my_W_and_S
  * @param (char**)              C
  * @return void
 */
-void set_a_b_c_variables(int * a, int * b, int * c, int * C_in_round_indexes, int target_index, struct W_and_S *all_W_and_S, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE]){
+void set_a_b_c_variables(int * a, int * b, int * c, int * C_in_round_indexes, int target_index, W_and_S * all_W_and_S, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE]){
     int is_great_combinations = 0; // bool
     int total_of_combinnations = 0;
     int sum_a = 0, sum_b = 0, sum_c = 0;
@@ -211,7 +241,9 @@ void set_player_info_in_each_round(int players_number){
 */
 void readStdin(char * concept, int * concept_index, char C[CONCEPTS_NB][MAX_CONCEPT_SIZE]){
     fgets(concept, CONCEPTS_NB, stdin);
-    concept[strcspn(concept, "\n")] = 0;
+    char *newline = strtok(concept, "\n"); 
+    if (newline != NULL) strcpy(concept, newline); // delete all \n
+
     // get index of C
     *concept_index = -1;
     for (int i = 0; i < CONCEPTS_NB; i++){
@@ -280,6 +312,15 @@ int get_similar_values_between_two_concepts_and_set_p1_and_p2(int * tmp_concepts
     return count;
 }
 
+void copy_string(char *source, char *destination) {
+    int i = 0;
+    while (source[i] != '\0') {
+        destination[i] = source[i];
+        i++;
+    }
+    destination[i] = '\0';
+}
+
 /**
  * Main function
  * 
@@ -288,17 +329,31 @@ int get_similar_values_between_two_concepts_and_set_p1_and_p2(int * tmp_concepts
 int main(void){
     fflush(stdout); // debug
 
+    char input[100];
+   
     // Init pythies
+    if (fgets(input, sizeof(input), stdin) == NULL) {
+        fprintf(stderr, "Error reading input\n");
+        return EXIT_FAILURE;
+    }
     int NJ, J;
-    scanf("%d %d", &NJ, &J);
+    if (sscanf(input, "%d %d", &NJ, &J) != 2) {
+        fprintf(stderr, "Error parsing input when we init pythie\n");
+        return EXIT_FAILURE;
+    }
 
     // Init concepts
     char C[CONCEPTS_NB][MAX_CONCEPT_SIZE];
-    for (int concept_index = 0; concept_index < CONCEPTS_NB; concept_index++)
-        scanf("%s", C[concept_index]);
+    for (int concept_index = 0; concept_index < CONCEPTS_NB; concept_index++) {
+        if (fgets(input, sizeof(input), stdin) == NULL) {
+            fprintf(stderr, "Error reading input when we init concept\n");
+            return EXIT_FAILURE;
+        }
+        sscanf(input, "%15s", C[concept_index]);
+    }
     
     // Init W S0..Sn
-    struct W_and_S all_W_and_S[WORDS_NB];
+    W_and_S all_W_and_S[WORDS_NB];
     for (int word_index = 0; word_index < WORDS_NB; word_index++){
         scanf("%s", all_W_and_S[word_index].word); // init W
 
@@ -326,7 +381,7 @@ int main(void){
 
     // Find word and p
     for (int word_index = 0; word_index < WORDS_NB; word_index++){
-        struct W_and_S my_W_and_S = all_W_and_S[word_index];
+        W_and_S my_W_and_S = all_W_and_S[word_index];
         int tmp_concepts[CONCEPTS_NB];
         init_algo(my_W_and_S, tmp_concepts); // sort tmp_concepts
         
@@ -363,7 +418,7 @@ int main(void){
 
             // Loop to delete wrong answer
             for (int word_index = 0; word_index < WORDS_NB; word_index++){
-                struct W_and_S my_W_and_S = all_W_and_S[word_index];
+                W_and_S my_W_and_S = all_W_and_S[word_index];
                 int tmp_concepts[CONCEPTS_NB];
                 init_algo(my_W_and_S, tmp_concepts);
                 
@@ -389,10 +444,11 @@ int main(void){
             fflush(stdout);
             set_player_info_in_each_round(NJ);
             
-            strcpy(save_concepts, current_concepts); // Save current concepts to tmp
+            copy_string(current_concepts, save_concepts);
             save_concepts_index = current_concepts_index;
         }
     }
 
     free(guess_word);
+    return EXIT_SUCCESS;
 }
