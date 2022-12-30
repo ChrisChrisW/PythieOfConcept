@@ -2,10 +2,15 @@ localhost = localhost:8888
 javaCMD = java -jar pythieofconcept.jar
 gccww = gcc -Wall -Wextra -std=c99
 
+mycodefile = christophe_Pythie_Of_Concept.c
+
+
+# ---
+
 all : compile main
 
 init : 
-	$(javaCMD) -b3 -b4
+	$(javaCMD) -b2 -b3
 
 main : jars html
 	$(javaCMD) C:code/main -b2 -b3
@@ -18,7 +23,7 @@ php : html
 	firefox $(localhost)/html/index.php
 
 compile: code
-	$(gccww) -o code/main code/code.c
+	$(gccww) -o code/main code/$(mycodefile)
 
 git :
 	git add .
