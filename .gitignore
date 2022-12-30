@@ -2,7 +2,7 @@
 .vscode
 
 # exe in code
-./code/main
+code/main
 
 # html
-./html/results.json
+html/results.json
