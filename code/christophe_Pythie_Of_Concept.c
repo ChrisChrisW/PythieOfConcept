@@ -206,7 +206,7 @@ int main(void){
                         }
                     }
                 }
-                if (step >= 0 && round > 2) {
+                if (step > 0 || (step == 0 && round > 1)) {
                     // delete wrong word not to be between p_min and p_max => p
                     int target_index = get_target_array_index(save_concepts_indexes[round], tmp_concepts, CONCEPTS_NB);
                     if (target_index > (10 - p) && (target_index < ((CONCEPTS_NB) - (10 + p)))) words[word_index] = 1;
