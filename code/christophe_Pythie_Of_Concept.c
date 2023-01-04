@@ -172,8 +172,23 @@ int main(void){
 
             fprintf(stderr, "concept = %s\n", target_line);
             fprintf(stderr, "concept index = %d\n", save_concepts_indexes[round]);
+    
+            // Find the last one
+            // calculates the sum of all words
+            // to find 999 so they have a word with index 0
+            int sum_words = 0;
+            for (int i = 0; i < WORDS_NB; i++) sum_words += words[i];
 
-            // Loop to calibrate p (also find a,b and c) and to delete wrong word
+            // GUESS OR PASS
+            if (is_great_word == 0 && sum_words == (WORDS_NB - 1)) {
+                is_great_word = 1;
+                int target_index = get_target_array_index(0, words, WORDS_NB); // target value 0
+                char * guess_word = all_W_and_S[target_index].word;
+                printf("GUESS %s\n", guess_word);
+            } else printf("PASS\n");
+            fflush(stdout); // debug
+
+                        // Loop to calibrate p (also find a,b and c) and to delete wrong word
             for (int word_index = 0; word_index < WORDS_NB; word_index++) {
                 my_W_and_S = all_W_and_S[word_index];
                 int tmp_concepts[CONCEPTS_NB];
@@ -207,7 +222,6 @@ int main(void){
                     }
                 }
 
-
                 // delete wrong word not to be between p_min and p_max => p
                 // TODO : 
                 if (step > 0 || (step == 0 && round > 1)) {
@@ -216,21 +230,6 @@ int main(void){
                 }
             }
             fprintf(stderr, "p = %d\n", p);
-    
-            // Find the last one
-            // calculates the sum of all words
-            // to find 999 so they have a word with index 0
-            int sum_words = 0;
-            for (int i = 0; i < WORDS_NB; i++) sum_words += words[i];
-
-            // GUESS OR PASS
-            if (is_great_word == 0 && sum_words == (WORDS_NB - 1)) {
-                is_great_word = 1;
-                int target_index = get_target_array_index(0, words, WORDS_NB); // target value 0
-                char * guess_word = all_W_and_S[target_index].word;
-                printf("GUESS %s\n", guess_word);
-            } else printf("PASS\n");
-            fflush(stdout); // debug
 
             fprintf(stderr, "\n- End step %d round %d -\n", step + 1, round + 1);
 
