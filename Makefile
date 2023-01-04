@@ -3,6 +3,7 @@ javaCMD = java -jar pythieofconcept.jar
 gccww = gcc -Wall -Wextra -std=c99
 
 mycodefile = christophe_Pythie_Of_Concept.c
+#mycodefile = code.c
 
 
 # ---
