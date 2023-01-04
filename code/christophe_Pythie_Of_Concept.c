@@ -182,7 +182,7 @@ int main(void){
                 populate_tmp_concepts_array(my_W_and_S, tmp_concepts);
                     
                 // Calibrate p and search word
-                if (step == 0 && round > 2) {
+                if (step == 0 && round > 1) {
                     int current_p_min, current_p_max;
                     count_similar_value = get_similar_values_between_two_concepts_and_set_p_min_and_p_max(tmp_concepts, save_concepts_indexes, &current_p_min, &current_p_max);
                     int isMaxIsGreaterThanMin = current_p_min < current_p_max;
@@ -210,7 +210,7 @@ int main(void){
 
                 // delete wrong word not to be between p_min and p_max => p
                 // TODO : 
-                if (step > 0 || (step == 0 && round > 2)) {
+                if (step > 0 || (step == 0 && round > 1)) {
                     int target_index = get_target_array_index(save_concepts_indexes[round], tmp_concepts, CONCEPTS_NB);
                     if (target_index > (10 - p) && (target_index < ((CONCEPTS_NB) - (10 + p)))) words[word_index] = 1;
                 }
