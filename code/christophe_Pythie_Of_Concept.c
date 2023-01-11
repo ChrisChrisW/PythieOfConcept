@@ -141,7 +141,7 @@ int main(void){
     int save_concepts_indexes[ROUNDS_NB];
     int p = 7; // Init p, between 3 and 7
     int p_min, p_max; // (10 - p), (10 + p)
-    int min_count = CONCEPTS_NB - 1, count_similar_value = 0;
+    int min_count_similar_value = CONCEPTS_NB - 1, count_similar_value = 0;
 
     int a = 0, b = 0, c = 0;
     // int max_weight = 500;
@@ -197,20 +197,20 @@ int main(void){
                 count_similar_value = get_similar_values_between_two_concepts_and_set_p_min_and_p_max(sort_concepts, save_concepts_indexes, &current_p_min, &current_p_max);
                 int isMaxIsGreaterThanMin = current_p_min < current_p_max;
 
-                if(isMaxIsGreaterThanMin == 1 && count_similar_value <= min_count) {
+                if(isMaxIsGreaterThanMin == 1 && count_similar_value <= min_count_similar_value) {
                     int sum_current_p = abs(current_p_min + current_p_max - 20);
                     int sum_p = abs(p_min + p_max - 20);
                                     
                     // Compare current p and saved p
                     if (sum_current_p <= sum_p) {
-                        int tmp_p = 10 - p_min;
+                        int tmp_p = 10 - current_p_min;
                         
-                        if (p >= 3 && p <= 7) {
+                        if (tmp_p >= 3 && tmp_p <= 7) {
+                            min_count_similar_value = count_similar_value;
                             p_found_value = word_index;
-                            min_count = count_similar_value;
                             p_max = current_p_max;
-                            p_min = current_p_min;                                    
-                        
+                            p_min = current_p_min;
+
                             p = tmp_p; // Set a p value
                         }
                     }
