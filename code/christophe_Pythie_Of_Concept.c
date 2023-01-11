@@ -239,8 +239,8 @@ int main(void){
                 int target_index = get_target_array_index(save_concepts_indexes[round], sort_concepts, CONCEPTS_NB);
                 if (target_index >= (10 - p) && (target_index <= ((CONCEPTS_NB - 1) - (10 + p)))) words[word_index] = 1;
         
-                /*
                 // TODO : écrire une doc
+                /*
                 if(round > 0) {
                     int value_round = calculate_formula_value(my_W_and_S, word_index, C[save_concepts_indexes[round - 1]], a, b, c);
                     int value_round1 = calculate_formula_value(my_W_and_S, word_index, C[save_concepts_indexes[round]], a, b, c);
