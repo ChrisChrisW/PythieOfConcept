@@ -203,12 +203,16 @@ int main(void){
                                     
                     // Compare current p and saved p
                     if (sum_current_p <= sum_p) {
-                        p_found_value = word_index;
-                        min_count = count_similar_value;
-                        p_max = current_p_max;
-                        p_min = current_p_min;                                    
+                        int tmp_p = 10 - p_min;
                         
-                        p =  10 - p_min; // Set a p value
+                        if (p >= 3 && p <= 7) {
+                            p_found_value = word_index;
+                            min_count = count_similar_value;
+                            p_max = current_p_max;
+                            p_min = current_p_min;                                    
+                        
+                            p = tmp_p; // Set a p value
+                        }
                     }
                 }
                     
