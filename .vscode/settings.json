@@ -2,6 +2,7 @@
     "files.associations": {
         "main.C": "cpp",
         "stdlib.h": "c",
-        "cmath": "c"
+        "cmath": "c",
+        "limits": "c"
     }
 }
