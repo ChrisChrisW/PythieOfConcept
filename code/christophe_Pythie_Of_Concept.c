@@ -140,7 +140,6 @@ int main(void){
    
     int save_concepts_indexes[ROUNDS_NB];
     int p = 7; // Init p, between 3 and 7
-    int p_found_value = 0;
     int p_min, p_max; // (10 - p), (10 + p)
     int min_count = CONCEPTS_NB - 1, count_similar_value = 0;
 
@@ -150,6 +149,7 @@ int main(void){
     /* -- STEPS -- */
     for (int step = 0; step < STEPS; step++){
         int is_great_word = 0; // bool
+        int p_found_value = 0;
         int words[WORDS_NB] = {0};
 
         /* -- SET PLAYER/PYTHIE INFO AT START -- */
@@ -176,6 +176,9 @@ int main(void){
                 if (strcmp(C[i], input) == 0) save_concepts_indexes[round] = i; // compares two strings and saves the index of the first string in an array if they are equal
             /* -- END GET CONCEPT AND INDEX IN EACH ROUNDS -- */
 
+            // Check if we find secret word
+            if(strcmp(target_line, "NULL") == 0) is_great_word = 1;
+
             /* -- PRINT STDERR -- */
             fprintf(stderr, "concept = %s\n", target_line);
             fprintf(stderr, "concept index = %d\n", save_concepts_indexes[round]);
@@ -189,59 +192,61 @@ int main(void){
                 // Sort my_W_and_S in sort_concepts
                 populate_sort_concepts_array(my_W_and_S, sort_concepts);
                 
-                if(p_found_value == 0) {
-                    int current_p_min, current_p_max;
-                    count_similar_value = get_similar_values_between_two_concepts_and_set_p_min_and_p_max(sort_concepts, save_concepts_indexes, &current_p_min, &current_p_max);
-                    int isMaxIsGreaterThanMin = current_p_min < current_p_max;
+                
+                int current_p_min, current_p_max;
+                count_similar_value = get_similar_values_between_two_concepts_and_set_p_min_and_p_max(sort_concepts, save_concepts_indexes, &current_p_min, &current_p_max);
+                int isMaxIsGreaterThanMin = current_p_min < current_p_max;
 
-                    if(isMaxIsGreaterThanMin == 1 && count_similar_value <= min_count) {
-                        int sum_current_p = abs(current_p_min + current_p_max - 20);
-                        int sum_p = abs(p_min + p_max - 20);
+                if(isMaxIsGreaterThanMin == 1 && count_similar_value <= min_count) {
+                    int sum_current_p = abs(current_p_min + current_p_max - 20);
+                    int sum_p = abs(p_min + p_max - 20);
                                     
-                        // Compare current p and saved p
-                        if (sum_current_p <= sum_p) {
-                            p_found_value = word_index;
-                            min_count = count_similar_value;
-                            p_max = current_p_max;
-                            p_min = current_p_min;
-                                    
-                            // Set a p value
-                            p =  10 - p_min;
-                        }
+                    // Compare current p and saved p
+                    if (sum_current_p <= sum_p) {
+                        p_found_value = word_index;
+                        min_count = count_similar_value;
+                        p_max = current_p_max;
+                        p_min = current_p_min;                                    
+                        
+                        p =  10 - p_min; // Set a p value
                     }
+                }
                     
-                    /*
-                    if(round == ROUNDS_NB - 1) {
-                        int values[] = {5, 25, 45, 65, 75, 95};
-                        int max = 6;
+                /*
+                if(round == ROUNDS_NB - 1) {
+                    int values[] = {5, 25, 45, 65, 75, 95};
+                    int max = 6;
 
-                        for (int i = 0; i < max; i++) {
-                            for (int j = 0; j < max; j++) {
-                                for (int k = 0; k < max; k++) {
-                                    int value_round = calculate_formula_value(my_W_and_S, p_found_value, C[save_concepts_indexes[0]], i, j, k);
-                                    int value_round1 = calculate_formula_value(my_W_and_S, p_found_value, C[save_concepts_indexes[1]], i, j, k);
+                    for (int i = 0; i < max; i++) {
+                        for (int j = 0; j < max; j++) {
+                            for (int k = 0; k < max; k++) {
+                                int value_round = calculate_formula_value(my_W_and_S, p_found_value, C[save_concepts_indexes[0]], i, j, k);
+                                int value_round1 = calculate_formula_value(my_W_and_S, p_found_value, C[save_concepts_indexes[1]], i, j, k);
                                     
-                                    if (value_round > value_round1 && value_round > max_weight) {
-                                        max_weight = value_round;
-                                        a = values[i];
-                                        b = values[j];
-                                        c = values[k];
-                                    }
+                                if (value_round > value_round1 && value_round > max_weight) {
+                                    max_weight = value_round;
+                                    a = values[i];
+                                    b = values[j];
+                                    c = values[k];
                                 }
                             }
                         }
                     }
-                    */
-                } else {
-                    int index = (step == 0 && round == ROUNDS_NB - 1) ? p_found_value : word_index;
-                    int value_round = calculate_formula_value(my_W_and_S, index, C[save_concepts_indexes[round - 1]], a, b, c);
-                    int value_round1 = calculate_formula_value(my_W_and_S, index, C[save_concepts_indexes[round]], a, b, c);
-                    if(value_round > value_round1) words[word_index] = 1;
                 }
+                */
 
                 // delete wrong word not to be between p_min and p_max => p
                 int target_index = get_target_array_index(save_concepts_indexes[round], sort_concepts, CONCEPTS_NB);
                 if (target_index >= (10 - p) && (target_index <= ((CONCEPTS_NB - 1) - (10 + p)))) words[word_index] = 1;
+        
+                /*
+                // TODO : écrire une doc
+                if(round > 0) {
+                    int value_round = calculate_formula_value(my_W_and_S, word_index, C[save_concepts_indexes[round - 1]], a, b, c);
+                    int value_round1 = calculate_formula_value(my_W_and_S, word_index, C[save_concepts_indexes[round]], a, b, c);
+                    if(value_round > value_round1) words[word_index] = 1;
+                }
+                */
             }
 
             /* -- PRINT STDERR -- */
@@ -253,8 +258,8 @@ int main(void){
             
             /* -- GUESS AND PASS -- */
             // Pass in penultimate round in first step to guess in last round
-            if(step == 0 && round == ROUNDS_NB - 2 && is_great_word == 0) printf("PASS\n");
-            else if(step == 0 && round == ROUNDS_NB - 1 && is_great_word == 0) {
+            if(p_found_value != 0 && round == ROUNDS_NB - 2 && is_great_word == 0) printf("PASS\n");
+            else if(p_found_value != 0 && round == ROUNDS_NB - 1 && is_great_word == 0) {
                 // We are sure to find value in first round
                 char * guess_word = all_W_and_S[p_found_value].word;
                 printf("GUESS %s\n", guess_word);
@@ -270,7 +275,6 @@ int main(void){
 
                 // GUESS OR PASS
                 if (is_great_word == 0 && sum_words == (WORDS_NB - 1)) {
-                    is_great_word = 1;
                     int target_index = get_target_array_index(0, words, WORDS_NB); // target value 0
                     char * guess_word = all_W_and_S[target_index].word;
                     printf("GUESS %s\n", guess_word);
@@ -284,6 +288,7 @@ int main(void){
             /* -- END GUESS AND PASS -- */
 
             /* -- PRINT STDERR -- */
+            fprintf(stderr, "\n- %s -\n", is_great_word ? "FIND" : "SEARCH");
             fprintf(stderr, "\n- End step %d round %d -\n", step + 1, round + 1);
             /* -- END PRINT STDERR -- */
 
