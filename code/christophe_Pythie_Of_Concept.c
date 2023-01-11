@@ -232,12 +232,12 @@ int main(void){
                         }
                     }
                     */
-                } /* else {
+                } else {
                     int index = (step == 0 && round == ROUNDS_NB - 1) ? p_found_value : word_index;
                     int value_round = calculate_formula_value(my_W_and_S, index, C[save_concepts_indexes[round - 1]], a, b, c);
                     int value_round1 = calculate_formula_value(my_W_and_S, index, C[save_concepts_indexes[round]], a, b, c);
                     if(value_round > value_round1) words[word_index] = 1;
-                }*/
+                }
 
                 // delete wrong word not to be between p_min and p_max => p
                 int target_index = get_target_array_index(save_concepts_indexes[round], sort_concepts, CONCEPTS_NB);
@@ -264,8 +264,7 @@ int main(void){
                 /* -- END PRINT STDERR -- */
             } else {
                 // Find the last one
-                // calculates the sum of all words
-                // to find 999 so they have a word with index 0
+                // calculates the sum of all words to find 999 so we have a word with index = 0
                 int sum_words = 0;
                 for (int i = 0; i < WORDS_NB; i++) sum_words += words[i];
 
