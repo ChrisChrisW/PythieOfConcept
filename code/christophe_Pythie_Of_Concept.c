@@ -192,7 +192,6 @@ int main(void){
                 // Sort my_W_and_S in sort_concepts
                 populate_sort_concepts_array(my_W_and_S, sort_concepts);
                 
-                
                 int current_p_min, current_p_max;
                 count_similar_value = get_similar_values_between_two_concepts_and_set_p_min_and_p_max(sort_concepts, save_concepts_indexes, &current_p_min, &current_p_max);
                 int isMaxIsGreaterThanMin = current_p_min < current_p_max;
