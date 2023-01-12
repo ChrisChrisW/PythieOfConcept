@@ -2,7 +2,38 @@
  * The game consists of 20 rounds, in which Pythie must make a guess for each round. The program calculates the best guess for Pythie based on the available information and outputs it to stdout.
  * The program begins by reading in the number of concepts (NJ) and the number of words (J) from stdin, and then reading in the concepts themselves. Next, it reads in the words and their corresponding scores for each concept.
  * After this, the program enters a loop for each round of the game. In each round, it reads in the current word (W) and the score (ST) that Pythie has achieved so far. It then calculates the best guess for Pythie using a formula that takes into account the current word, the scores of the concepts, and the position of the guess in the current round.
- * The program uses several helper functions to perform these calculations, including functions to sort the scores, calculate the formula value, and determine the best guess based on the available information.
+ * The program uses helper functions to perform these calculations, including functions to sort the scores and determine the best guess based on the available information.
+ * 
+ * 
+ * 1) The function "populate_sort_concepts_array" sorts the scores of the concepts in the "my_W_and_S" struct and populates the "sort_concepts" array with them.
+ * It takes in two parameters, a "W_and_S" struct called "my_W_and_S" and an integer array called "sort_concepts".
+ * It creates a new array called "scores" and copies the scores from the "my_W_and_S" struct to the "scores" array.
+ * It then uses a nested loop to sort the "scores" array in ascending order using the bubble sort algorithm.
+ * Next, it initializes some variables to keep track of the last target score and last target index.
+ * Then, it enters a loop to iterate through the sorted "scores" array.
+ * For each score in the sorted array, it uses another nested loop to find the index of that score in the original scores array of the "my_W_and_S" struct.
+ * It then assigns the index to the corresponding index in the "sort_concepts" array.
+ * The last_target_score and last_target_index variables are updated with the current score and index.
+ * When the loop is finished, the "sort_concepts" array will be populated with the indexes of the scores sorted in ascending order.
+ * 
+ * 
+ * 2) The function "get_similar_values_between_two_concepts_and_set_p_min_and_p_max" compares the scores of two concepts, counts the number of similar scores and sets the minimum and maximum scores of the two concepts.
+ * Create an array "concepts" with all elements set to 0
+ * Iterate through the rounds and concepts, marking any concepts that appear in both the "sort_concepts" and "save_concepts_indexes" arrays.
+ * Initialize a count variable to 0
+ * Iterate through the "concepts" array, counting the number of transitions between similar and different concepts
+ * Check if the count is equal to 2, the check for count == 2 is used to determine if there are two transitions between similar and different concepts. This is used to set the p_min and p_max values, which are used in the calculation of the best guess for Pythie in the current round. If there are not two transitions, the p_min and p_max values are not set and the function returns the count of transitions.
+ * If it is, initialize two temporary variables, "tmp_min" and "tmp_max", to 1
+ * Iterate through the "concepts" array, counting the number of similar concepts from the beginning and from the end
+ * Set the "p_min" and "p_max" pointers to the values of "tmp_min" and "tmp_max" respectively
+ * Return the count value
+ * 
+ * 
+ * 3) The part delete wrong word with a function "get_target_array_index" select the potential word.
+ * This code checks if the current word's score for the current round's concept is within a certain range relative to the value of p, and if it is, marks it as valid by setting its corresponding index in the "words" array to 1, otherwise it eliminates it as a potential guess.
+ * (word_index >= (10 - p) && (target_index <= ((word_index - alpha) - (10 + p))))
+ * The alpha value is the experience of several trials.
+ * 
 */
 
 #include <stdio.h>
@@ -28,8 +59,8 @@
 
 /**
  * NJ J
- * @param int       NJ
- * @param int       J
+ * @param int NJ
+ * @param int J
 */
 typedef struct {
     int NJ;
@@ -39,8 +70,8 @@ typedef struct {
 /**
  * W S0..Sn variables
  * 
- * @param (char *)      word
- * @param (int *)       scores
+ * @param (char *) word
+ * @param (int *) scores
 */
 typedef struct {
     char word[MAX_WORD_SIZE];
@@ -50,9 +81,9 @@ typedef struct {
 /**
  * J P END values
  * 
- * @param int       J
- * @param int       P
- * @param int       END
+ * @param int J
+ * @param int P
+ * @param int END
 */
 typedef struct {
     int J;
@@ -63,9 +94,9 @@ typedef struct {
 /**
  * W J ST values
  * 
- * @param (char *)  W
- * @param int       J
- * @param int       ST
+ * @param (char *) W
+ * @param int J
+ * @param int ST
 */
 typedef struct {
     char W[MAX_WORD_SIZE];
@@ -78,8 +109,6 @@ typedef struct {
 /* -- DECLARE FUNCTIONS -- */
 
 int get_target_array_index(int target, int * arr, int size);
-int calculate_formula_value(W_and_S W_and_S, int target_index, char * concept, int a, int b, int c);
-void set_a_b_c_variables(int * a, int * b, int * c, int * save_indexes, int target_index);
 void populate_sort_concepts_array(W_and_S my_W_and_S, int sort_concepts[CONCEPTS_NB]);
 int get_similar_values_between_two_concepts_and_set_p_min_and_p_max(int * sort_concepts, int * save_concepts_indexes, int * p_min, int * p_max);
 
@@ -121,7 +150,6 @@ int main(void){
     }
     
     // Init W S0..Sn
-    // TODO : Can't sscanf...
     W_and_S all_W_and_S[WORDS_NB];
     for (int word_index = 0; word_index < WORDS_NB; word_index++) {
         // init W
@@ -149,12 +177,10 @@ int main(void){
     int save_concepts_indexes[ROUNDS_NB];
     int upper_p = 7, lower_p = 3;
     int p = (rand() % ((upper_p + 1) - (lower_p - 1) + 1)) + (lower_p - 1); // Init p, between 3 and 7
+    p = 3;
     int p_min, p_max; // (10 - p), (10 + p)
     int min_count_similar_value = CONCEPTS_NB - 2, count_similar_value = 0;
 
-    int a = 0, b = 0, c = 0;    
-    // int max_weight = 500;
-    
     /* -- STEPS -- */
     for (int step = 0; step < STEPS; step++){
         int is_great_word = 0; // bool
@@ -173,10 +199,6 @@ int main(void){
 
         /* -- ROUNDS -- */
         for (int round = 0; round < ROUNDS_NB; round++) {
-            /* -- PRINT STDERR -- */
-            fprintf(stderr, "- Start step %d round %d -\n\n", step + 1, round + 1);
-            /* -- END PRINT STDERR -- */
-
             /* -- GET CONCEPT AND INDEX IN EACH ROUNDS -- */
             fgets(input, MAX_CONCEPT_SIZE, stdin);
             char *target_line = strtok(input, "\n"); 
@@ -185,13 +207,9 @@ int main(void){
                 if (strcmp(C[i], input) == 0) save_concepts_indexes[round] = i; // compares two strings and saves the index of the first string in an array if they are equal
             /* -- END GET CONCEPT AND INDEX IN EACH ROUNDS -- */
 
-            // Check if we find secret word
+            // Check if we find secret word, else we clean the word variable
             if(strcmp(target_line, "NULL") == 0) is_great_word = 1;
-
-            /* -- PRINT STDERR -- */
-            fprintf(stderr, "concept = %s\n", target_line);
-            fprintf(stderr, "concept index = %d\n", save_concepts_indexes[round]);
-            /* -- END PRINT STDERR -- */
+            else for (int i = 0; i < WORDS_NB; i++) words[WORDS_NB] = 0;
 
             // Loop to calibrate p and to delete wrong word
             for (int word_index = 0; word_index < WORDS_NB; word_index++) {
@@ -201,16 +219,17 @@ int main(void){
                 // Sort my_W_and_S in sort_concepts
                 populate_sort_concepts_array(my_W_and_S, sort_concepts);
                 
+                // Calibrate p and search word
                 int current_p_min, current_p_max;
                 count_similar_value = get_similar_values_between_two_concepts_and_set_p_min_and_p_max(sort_concepts, save_concepts_indexes, &current_p_min, &current_p_max);
                 int isMaxIsGreaterThanMin = current_p_min < current_p_max;
 
-                if(isMaxIsGreaterThanMin == 1 && count_similar_value < min_count_similar_value) {
+                if(isMaxIsGreaterThanMin == 1 && count_similar_value <= min_count_similar_value) {
                     int sum_current_p = abs(current_p_min + current_p_max - 20);
                     int sum_p = abs(p_min + p_max - 20);
                                     
                     // Compare current p and saved p
-                    if (sum_current_p < sum_p) {
+                    if (sum_current_p <= sum_p) {
                         int tmp_p = 10 - current_p_min;
                         
                         if (tmp_p >= lower_p && tmp_p <= upper_p) {
@@ -226,22 +245,10 @@ int main(void){
 
                 // delete wrong word not to be between p_min and p_max => p
                 int target_index = get_target_array_index(save_concepts_indexes[round], sort_concepts, CONCEPTS_NB);
-                if (target_index >= (10 - p) && (target_index <= ((CONCEPTS_NB - 1) - (10 + p)))) words[word_index] = 1;
-        
-                // TODO : écrire une doc
-                if(round > 0) {
-                    int value_round = calculate_formula_value(my_W_and_S, word_index, C[save_concepts_indexes[round - 1]], a, b, c);
-                    int value_round1 = calculate_formula_value(my_W_and_S, word_index, C[save_concepts_indexes[round]], a, b, c);
-                    if(value_round > value_round1) words[word_index] = 1;
-                }
+                int alpha = 1;
+                if(p >= lower_p && p <= 4) alpha = 2;
+                if (target_index >= (10 - p) && (target_index <= ((CONCEPTS_NB - alpha) - (10 + p)))) words[word_index] = 1;
             }
-
-            /* -- PRINT STDERR -- */
-            // fprintf(stderr, "a = %d\n", a);
-            // fprintf(stderr, "b = %d\n", b);
-            // fprintf(stderr, "c = %d\n", c);
-            fprintf(stderr, "p = %d\n", p);
-            /* -- END PRINT STDERR -- */
             
             // Find the last one
             // calculates the sum of all words to find 999 so we have a word with index = 0
@@ -253,29 +260,16 @@ int main(void){
                 int target_index = get_target_array_index(0, words, WORDS_NB); // target value 0
                 char * guess_word = all_W_and_S[target_index].word;
                 printf("GUESS %s\n", guess_word);
-
-                /* -- PRINT STDERR -- */
-                fprintf(stderr, "\nGUESS %s\n", guess_word);
-                /* -- END PRINT STDERR -- */
             } 
             else if (is_great_word == 0 && p_found_value != 0) {
                 // We are sure to find value in first round
                 char * guess_word = all_W_and_S[p_found_value].word;
                 printf("GUESS %s\n", guess_word);
                 p_found_value = 0;
-
-                /* -- PRINT STDERR -- */
-                fprintf(stderr, "\nP GUESS %s\n", guess_word);
-                /* -- END PRINT STDERR -- */
             }
             else printf("PASS\n");
             fflush(stdout); // debug
             /* -- END GUESS AND PASS -- */
-
-            /* -- PRINT STDERR -- */
-            fprintf(stderr, "\n- %s -\n", is_great_word ? "FIND" : "SEARCH");
-            fprintf(stderr, "\n- End step %d round %d -\n", step + 1, round + 1);
-            /* -- END PRINT STDERR -- */
 
             /* -- SET PLAYER/PYTHIE INFO DATA IN EACH ROUND -- */
             for (int player = 0; player < NJ_and_J.NJ; player++) {
@@ -350,8 +344,8 @@ void populate_sort_concepts_array(W_and_S my_W_and_S, int sort_concepts[CONCEPTS
 }
 
 /**
- * Get similar values bw 2 variables,
- * set p_min and p_max
+ * Find the similar values between two input arrays and 
+ * set the minimum and maximum position of the similar values using a hash map.
  * 
  * @param (int*)    sort_concepts
  * @param (int*)    save_concepts_indexes
@@ -399,99 +393,4 @@ int get_similar_values_between_two_concepts_and_set_p_min_and_p_max(int * sort_c
     }
 
     return count;
-}
-
-/**
- * calculates a value based on the input parameters.
- * comparing two strings, word and concept, and using their lengths and s value, which is scores element in the W_and_S struct, to calculate the final result.
- * 
- * @param W_and_S               W_and_S
- * @param int                   target_index
- * @param (char*)               concept
- * @param int                   a
- * @param int                   b
- * @param int                   c
- * @return int
-*/
-int calculate_formula_value(W_and_S W_and_S, int target_index, char * concept, int a, int b, int c){
-    char *word = W_and_S.word;
-    int u = abs((int)(strlen(word) - strlen(concept)));
-
-    int t = 0;
-    // Compare the word and concept strings
-    while (word[t] == concept[t]) t++;
-    t = strlen(word) - t;
-    // t = strlen(word);
-
-    int s = W_and_S.scores[target_index];
-
-    return a * s + 10 * b * t + 10 * c * u;
-}
-
-/**
- * TODO : Don't work
- * Set A, B and C variables with average method
- * 
- * @param (int*)                a
- * @param (int*)                b
- * @param (int*)                c
- * @param (int*)                save_concepts_indexes
- * @param int                   target_index
- * @return void
-*/
-void set_a_b_c_variables(int * a, int * b, int * c, int * save_concepts_indexes, int the_best_index) {
-    int count_concept_in_round = 0;
-    int tmp_a = 1, tmp_b = 1, tmp_c = 1;
-    
-    // // Set tmp values and counts the number of times target_index appears in the save_concepts_indexes
-    for (int concept_index = 0; concept_index < CONCEPTS_NB; concept_index++){
-        if (save_concepts_indexes[concept_index] == the_best_index){
-            count_concept_in_round = (count_concept_in_round + 1) % 3;
-
-            if (count_concept_in_round == 1) tmp_a = concept_index;
-            else if (count_concept_in_round == 2) tmp_b = concept_index;
-            else if (count_concept_in_round == 3) tmp_c = concept_index;
-        }
-    }
-    
-
-    // fprintf(stderr, "count = %d\n", count_concept_in_round);
-    // Set a,b and c values
-    if(count_concept_in_round == 1) {
-        *a = tmp_a;
-    }
-    else if (count_concept_in_round == 2) {
-        *a = tmp_a;
-        *b = tmp_b;
-    } else if (count_concept_in_round == 3) {
-        *a = tmp_a; *b = tmp_b; *c = tmp_c;
-    }
-}
-
-void find_combinations(int a, int b, int c, W_and_S my_W_and_S, int word_index, char * concept1, char * concept2, int * a_def, int * b_def, int * c_def) {
-    if(a == 95 && b == 95 && c == 95) {
-        return; // exit
-    }
-
-    if (a != b && b != c && a != c) {
-        int currentF = calculate_formula_value(my_W_and_S, word_index, concept1, a, b, c);
-        int nextF = calculate_formula_value(my_W_and_S, word_index, concept2, a, b, c);
-
-        if(currentF > nextF) {
-            *a_def = a;
-            *b_def = b;
-            *c_def = c;
-            return; // exit
-        }
-    }
-
-    if (a < 95) {
-        find_combinations(a + 30, b, c, my_W_and_S, word_index, concept1, concept2, a_def, b_def, c_def);
-    }
-    if (b < 95) {
-        find_combinations(a, b + 30, c, my_W_and_S, word_index, concept1, concept2, a_def, b_def, c_def);
-    }
-    if (c < 95) {
-        find_combinations(a, b, c + 30, my_W_and_S, word_index, concept1, concept2, a_def, b_def, c_def);
-    }
 }
