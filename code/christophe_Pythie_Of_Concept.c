@@ -150,9 +150,9 @@ int main(void){
     int upper_p = 7, lower_p = 3;
     int p = (rand() % ((upper_p + 1) - (lower_p - 1) + 1)) + (lower_p - 1); // Init p, between 3 and 7
     int p_min, p_max; // (10 - p), (10 + p)
-    int min_count_similar_value = CONCEPTS_NB - 1, count_similar_value = 0;
+    int min_count_similar_value = CONCEPTS_NB - 2, count_similar_value = 0;
 
-    int a = 0, b = 0, c = 0;
+    int a = 0, b = 0, c = 0;    
     // int max_weight = 500;
     
     /* -- STEPS -- */
@@ -205,17 +205,17 @@ int main(void){
                 count_similar_value = get_similar_values_between_two_concepts_and_set_p_min_and_p_max(sort_concepts, save_concepts_indexes, &current_p_min, &current_p_max);
                 int isMaxIsGreaterThanMin = current_p_min < current_p_max;
 
-                if(isMaxIsGreaterThanMin == 1 && count_similar_value <= min_count_similar_value) {
+                if(isMaxIsGreaterThanMin == 1 && count_similar_value < min_count_similar_value) {
                     int sum_current_p = abs(current_p_min + current_p_max - 20);
                     int sum_p = abs(p_min + p_max - 20);
                                     
                     // Compare current p and saved p
-                    if (sum_current_p <= sum_p) {
+                    if (sum_current_p < sum_p) {
                         int tmp_p = 10 - current_p_min;
                         
                         if (tmp_p >= lower_p && tmp_p <= upper_p) {
-                            min_count_similar_value = count_similar_value;
                             p_found_value = word_index;
+                            min_count_similar_value = count_similar_value;
                             p_max = current_p_max;
                             p_min = current_p_min;
 
@@ -223,29 +223,6 @@ int main(void){
                         }
                     }
                 }
-                    
-                /*
-                if(round == ROUNDS_NB - 1) {
-                    int values[] = {5, 25, 45, 65, 75, 95};
-                    int max = 6;
-
-                    for (int i = 0; i < max; i++) {
-                        for (int j = 0; j < max; j++) {
-                            for (int k = 0; k < max; k++) {
-                                int value_round = calculate_formula_value(my_W_and_S, p_found_value, C[save_concepts_indexes[0]], i, j, k);
-                                int value_round1 = calculate_formula_value(my_W_and_S, p_found_value, C[save_concepts_indexes[1]], i, j, k);
-                                    
-                                if (value_round > value_round1 && value_round > max_weight) {
-                                    max_weight = value_round;
-                                    a = values[i];
-                                    b = values[j];
-                                    c = values[k];
-                                }
-                            }
-                        }
-                    }
-                }
-                */
 
                 // delete wrong word not to be between p_min and p_max => p
                 int target_index = get_target_array_index(save_concepts_indexes[round], sort_concepts, CONCEPTS_NB);
@@ -266,34 +243,32 @@ int main(void){
             fprintf(stderr, "p = %d\n", p);
             /* -- END PRINT STDERR -- */
             
+            // Find the last one
+            // calculates the sum of all words to find 999 so we have a word with index = 0
+            int sum_words = 0;
+            for (int i = 0; i < WORDS_NB; i++) sum_words += words[i];
+
             /* -- GUESS AND PASS -- */
-            // Pass in penultimate round in first step to guess in last round
-            if(p_found_value != 0 && round == ROUNDS_NB - 2 && is_great_word == 0) printf("PASS\n");
-            else if(p_found_value != 0 && round == ROUNDS_NB - 1 && is_great_word == 0) {
-                // We are sure to find value in first round
-                char * guess_word = all_W_and_S[p_found_value].word;
+            if (is_great_word == 0 && sum_words == (WORDS_NB - 1)) {
+                int target_index = get_target_array_index(0, words, WORDS_NB); // target value 0
+                char * guess_word = all_W_and_S[target_index].word;
                 printf("GUESS %s\n", guess_word);
 
                 /* -- PRINT STDERR -- */
                 fprintf(stderr, "\nGUESS %s\n", guess_word);
                 /* -- END PRINT STDERR -- */
-            } else {
-                // Find the last one
-                // calculates the sum of all words to find 999 so we have a word with index = 0
-                int sum_words = 0;
-                for (int i = 0; i < WORDS_NB; i++) sum_words += words[i];
+            } 
+            else if (is_great_word == 0 && p_found_value != 0) {
+                // We are sure to find value in first round
+                char * guess_word = all_W_and_S[p_found_value].word;
+                printf("GUESS %s\n", guess_word);
+                p_found_value = 0;
 
-                // GUESS OR PASS
-                if (is_great_word == 0 && sum_words == (WORDS_NB - 1)) {
-                    int target_index = get_target_array_index(0, words, WORDS_NB); // target value 0
-                    char * guess_word = all_W_and_S[target_index].word;
-                    printf("GUESS %s\n", guess_word);
-
-                    /* -- PRINT STDERR -- */
-                    fprintf(stderr, "\nGUESS %s\n", guess_word);
-                    /* -- END PRINT STDERR -- */
-                } else printf("PASS\n");
+                /* -- PRINT STDERR -- */
+                fprintf(stderr, "\nP GUESS %s\n", guess_word);
+                /* -- END PRINT STDERR -- */
             }
+            else printf("PASS\n");
             fflush(stdout); // debug
             /* -- END GUESS AND PASS -- */
 
