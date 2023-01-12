@@ -123,11 +123,19 @@ int main(void){
     // Init W S0..Sn
     // TODO : Can't sscanf...
     W_and_S all_W_and_S[WORDS_NB];
-    for (int word_index = 0; word_index < WORDS_NB; word_index++){
-        scanf("%s", all_W_and_S[word_index].word); // init W
+    for (int word_index = 0; word_index < WORDS_NB; word_index++) {
+        // init W
+        if(scanf("%s", all_W_and_S[word_index].word) == 0) {
+            fprintf(stderr, "Error fgets word values\n");
+            return EXIT_FAILURE;
+        }
 
         for (int score_index = 0; score_index < SCORES_NB; score_index++)
-            scanf("%d", &all_W_and_S[word_index].scores[score_index]); // init S
+            // init S
+            if (scanf("%d", &all_W_and_S[word_index].scores[score_index]) == 0) {
+                fprintf(stderr, "Error fgets scores values\n");
+                return EXIT_FAILURE;
+            }
     }
     
     /* -- END INIT -- */
@@ -139,7 +147,8 @@ int main(void){
     Pythie_status_in_round Pythie_status_in_round;
    
     int save_concepts_indexes[ROUNDS_NB];
-    int p = 7; // Init p, between 3 and 7
+    int upper_p = 7, lower_p = 3;
+    int p = (rand() % ((upper_p + 1) - (lower_p - 1) + 1)) + (lower_p - 1); // Init p, between 3 and 7
     int p_min, p_max; // (10 - p), (10 + p)
     int min_count_similar_value = CONCEPTS_NB - 1, count_similar_value = 0;
 
@@ -204,7 +213,7 @@ int main(void){
                     if (sum_current_p <= sum_p) {
                         int tmp_p = 10 - current_p_min;
                         
-                        if (tmp_p >= 3 && tmp_p <= 7) {
+                        if (tmp_p >= lower_p && tmp_p <= upper_p) {
                             min_count_similar_value = count_similar_value;
                             p_found_value = word_index;
                             p_max = current_p_max;
@@ -243,19 +252,17 @@ int main(void){
                 if (target_index >= (10 - p) && (target_index <= ((CONCEPTS_NB - 1) - (10 + p)))) words[word_index] = 1;
         
                 // TODO : écrire une doc
-                /*
                 if(round > 0) {
                     int value_round = calculate_formula_value(my_W_and_S, word_index, C[save_concepts_indexes[round - 1]], a, b, c);
                     int value_round1 = calculate_formula_value(my_W_and_S, word_index, C[save_concepts_indexes[round]], a, b, c);
                     if(value_round > value_round1) words[word_index] = 1;
                 }
-                */
             }
 
             /* -- PRINT STDERR -- */
-            fprintf(stderr, "a = %d\n", a);
-            fprintf(stderr, "b = %d\n", b);
-            fprintf(stderr, "c = %d\n", c);
+            // fprintf(stderr, "a = %d\n", a);
+            // fprintf(stderr, "b = %d\n", b);
+            // fprintf(stderr, "c = %d\n", c);
             fprintf(stderr, "p = %d\n", p);
             /* -- END PRINT STDERR -- */
             
