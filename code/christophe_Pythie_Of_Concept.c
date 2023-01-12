@@ -310,36 +310,25 @@ int get_target_array_index(int target, int * arr, int size){
  * @return void
 */
 void populate_sort_concepts_array(W_and_S my_W_and_S, int sort_concepts[CONCEPTS_NB]) {
-    // Make a copy of the scores array
-    int scores[CONCEPTS_NB];
+    // Create an array of indices
+    int indices[CONCEPTS_NB];
     for (int i = 0; i < CONCEPTS_NB; i++)
-        scores[i] = my_W_and_S.scores[i];
+        indices[i] = i;
 
-    // Sort the scores array in ascending order
+    // Sort the indices array based on the scores array
     for (int i = 0; i < CONCEPTS_NB - 1; i++) {
-        for (int j = 0; j < CONCEPTS_NB - i - 1; j++){
-            if (scores[j] > scores[j + 1]) {
-                int temp = scores[j];
-                scores[j] = scores[j + 1];
-                scores[j + 1] = temp;
+        for (int j = i + 1; j < CONCEPTS_NB; j++){
+            if (my_W_and_S.scores[indices[i]] > my_W_and_S.scores[indices[j]]) {
+                int temp = indices[i];
+                indices[i] = indices[j];
+                indices[j] = temp;
             }
         }
     }
 
-    // Populate the sort_concepts array using the sorted scores array
-    int last_target_score = 0, last_target_index = 0;
+    // Populate the sort_concepts array using the sorted indices array
     for (int i = 0; i < CONCEPTS_NB; i++) {
-        int target_score = scores[i];
-        // Find the index of the target score in the original scores array
-        for (int j = 0; j < CONCEPTS_NB; j++) {
-            if (my_W_and_S.scores[j] == target_score && (last_target_score != target_score || j > last_target_index)) {
-                sort_concepts[i] = j;
-                break;
-            }
-        }
-
-        last_target_score = target_score;
-        last_target_index = sort_concepts[i];
+        sort_concepts[i] = indices[i];
     }
 }
 
