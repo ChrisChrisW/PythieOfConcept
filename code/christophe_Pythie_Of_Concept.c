@@ -355,25 +355,22 @@ void populate_sort_concepts_array(W_and_S my_W_and_S, int sort_concepts[CONCEPTS
 */
 int get_similar_values_between_two_concepts_and_set_p_min_and_p_max(int * sort_concepts, int * save_concepts_indexes, int * p_min, int * p_max) {
     int concepts[CONCEPTS_NB] = {0};
-    
+    int hash_table[CONCEPTS_NB] = {0};
+
+    // Create a hash table for the save_concepts_indexes array
+    for (int r = 0; r < ROUNDS_NB; r++)
+        hash_table[save_concepts_indexes[r]] = 1;
+
     // Mark concepts that appear in both sort_concepts and save_concepts_indexes
-    for (int r = 0; r < ROUNDS_NB; r++) {
-        for (int c = 0; c < CONCEPTS_NB; c++) {
-            if (sort_concepts[c] == save_concepts_indexes[r]) {                
-                concepts[c] = 1;
-                if (c == 0 && concepts[0] == 0) return 0;
-                break;
-            }
-        }
-    }
+    for (int c = 0; c < CONCEPTS_NB; c++)
+        if (hash_table[sort_concepts[c]] == 1) concepts[c] = 1;
 
     int size = CONCEPTS_NB - 1;
 
     // Count the number of transitions between similar and different concepts
     int count = 0;
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++)
         if (concepts[i] != concepts[i + 1]) count ++;
-    }
 
     // If there are two transitions, set p_min and p_max
     if (count == 2) {
