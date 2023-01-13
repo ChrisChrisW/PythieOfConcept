@@ -17,18 +17,20 @@
  * When the loop is finished, the "sort_concepts" array will be populated with the indexes of the scores sorted in ascending order.
  * 
  * 
- * 2) The function "get_similar_values_between_two_concepts_and_set_p_min_and_p_max" compares the scores of two concepts, counts the number of similar scores and sets the minimum and maximum scores of the two concepts.
- * Create an array "concepts" with all elements set to 0
- * Iterate through the rounds and concepts, marking any concepts that appear in both the "sort_concepts" and "save_concepts_indexes" arrays.
- * Initialize a count variable to 0
- * Iterate through the "concepts" array, counting the number of transitions between similar and different concepts
- * Check if the count is equal to 2, the check for count == 2 is used to determine if there are two transitions between similar and different concepts. This is used to set the p_min and p_max values, which are used in the calculation of the best guess for Pythie in the current round. If there are not two transitions, the p_min and p_max values are not set and the function returns the count of transitions.
- * If it is, initialize two temporary variables, "tmp_min" and "tmp_max", to 1
- * Iterate through the "concepts" array, counting the number of similar concepts from the beginning and from the end
- * Set the "p_min" and "p_max" pointers to the values of "tmp_min" and "tmp_max" respectively
- * Return the count value
- * 
- * 
+ * 2) The function "get_similar_values_between_two_concepts_and_set_p_min_and_p_max" takes two arrays of integers and pointers to two integers, it creates a hash table of the second array, mark the common elements in the two arrays, counts the number of transitions between similar and different elements, if the number of transitions is two it sets the two pointers with the position of the transitions, and returns the number of transitions.
+ * Initialize an array called "concepts" of size "CONCEPTS_NB" with all elements set to 0.
+ * Initialize an array called "hash_table" of size "CONCEPTS_NB" with all elements set to 0.
+ * Loop through the "save_concepts_indexes" array and for each element, set the corresponding element in the "hash_table" array to 1.
+ * Loop through the "sort_concepts" array, for each element, check if the corresponding element in the "hash_table" array is set to 1. If so, set the corresponding element in the "concepts" array to 1.
+ * Initialize a variable "count" to 0.
+ * Loop through the "concepts" array, starting from the first element and ending at the second to last element. For each element, check if it is different from the next element in the array. If so, increment "count" by 1.
+ * If "count" is equal to 2, initialize two variables "tmp_min" and "tmp_max" to 1.
+ * Loop through the "concepts" array, starting from the first element, and for each element that is equal to the next element, increment "tmp_min" by 1.
+ * Loop through the "concepts" array, starting from the last element, and for each element that is equal to the previous element, increment "tmp_max" by 1.
+ * Set the values of "p_min" and "p_max" to "tmp_min" and "tmp_max" respectively.
+ * Return "count".
+ *
+ *  
  * 3) The part delete wrong word with a function "get_target_array_index" select the potential word.
  * This code checks if the current word's score for the current round's concept is within a certain range relative to the value of p, and if it is, marks it as valid by setting its corresponding index in the "words" array to 1, otherwise it eliminates it as a potential guess.
  * (word_index >= (10 - p) && (target_index <= ((word_index - alpha) - (10 + p))))
