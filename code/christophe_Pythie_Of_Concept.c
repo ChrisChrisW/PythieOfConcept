@@ -253,12 +253,12 @@ int main(void){
             }
             
             // Find the last one
-            // calculates the sum of all words to find 999 so we have a word with index = 0
-            int sum_words = 0;
-            for (int i = 0; i < WORDS_NB; i++) sum_words += words[i];
+            // calculates the sum of all words to find 1 so we have a word with index = 0
+            int find_words = WORDS_NB;
+            for (int i = 0; i < WORDS_NB; i++) find_words -= words[i];
 
             /* -- GUESS AND PASS -- */
-            if (is_great_word == 0 && sum_words == (WORDS_NB - 1)) {
+            if (is_great_word == 0 && find_words == 1) {
                 int target_index = get_target_array_index(0, words, WORDS_NB); // target value 0
                 char * guess_word = all_W_and_S[target_index].word;
                 printf("GUESS %s\n", guess_word);
