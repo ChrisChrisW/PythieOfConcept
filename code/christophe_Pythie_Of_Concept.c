@@ -225,14 +225,14 @@ int main(void){
                 int isMaxIsGreaterThanMin = current_p_min < current_p_max;
 
                 if(isMaxIsGreaterThanMin == 1 && count_similar_value <= min_count_similar_value) {
-                    int sum_current_p = abs(current_p_min + current_p_max - 20);
-                    int sum_p = abs(p_min + p_max - 20);
-                                    
-                    // Compare current p and saved p
-                    if (sum_current_p <= sum_p) {
-                        int tmp_p = 10 - current_p_min;
-                        
-                        if (tmp_p >= lower_p && tmp_p <= upper_p) {
+                    int tmp_p = 10 - current_p_min;
+
+                    if (tmp_p >= lower_p && tmp_p <= upper_p) {
+                        int sum_current_p = abs(current_p_min + current_p_max - 20);
+                        int sum_p = abs(p_min + p_max - 20);
+                                        
+                        // Compare current p and saved p
+                        if (sum_current_p <= sum_p) {
                             p_found_value = word_index;
                             min_count_similar_value = count_similar_value;
                             p_max = current_p_max;
@@ -294,7 +294,7 @@ int main(void){
  * @param int       size
  * @return int
 */
-int get_target_array_index(int target, int * arr, int size){
+int get_target_array_index(int target, int * arr, int size) {
     for (int index = 0; index < size; index++)
         if (arr[index] == target) return index;
         
@@ -310,25 +310,36 @@ int get_target_array_index(int target, int * arr, int size){
  * @return void
 */
 void populate_sort_concepts_array(W_and_S my_W_and_S, int sort_concepts[CONCEPTS_NB]) {
-    // Create an array of indices
-    int indices[CONCEPTS_NB];
+    // Make a copy of the scores array
+    int scores[CONCEPTS_NB];
     for (int i = 0; i < CONCEPTS_NB; i++)
-        indices[i] = i;
+        scores[i] = my_W_and_S.scores[i];
 
-    // Sort the indices array based on the scores array
+    // Sort the scores array in ascending order
     for (int i = 0; i < CONCEPTS_NB - 1; i++) {
-        for (int j = i + 1; j < CONCEPTS_NB; j++){
-            if (my_W_and_S.scores[indices[i]] > my_W_and_S.scores[indices[j]]) {
-                int temp = indices[i];
-                indices[i] = indices[j];
-                indices[j] = temp;
+        for (int j = 0; j < CONCEPTS_NB - i - 1; j++){
+            if (scores[j] > scores[j + 1]) {
+                int temp = scores[j];
+                scores[j] = scores[j + 1];
+                scores[j + 1] = temp;
             }
         }
     }
 
-    // Populate the sort_concepts array using the sorted indices array
+    // Populate the sort_concepts array using the sorted scores array
+    int last_target_score = 0, last_target_index = 0;
     for (int i = 0; i < CONCEPTS_NB; i++) {
-        sort_concepts[i] = indices[i];
+        int target_score = scores[i];
+        // Find the index of the target score in the original scores array
+        for (int j = 0; j < CONCEPTS_NB; j++) {
+            if (my_W_and_S.scores[j] == target_score && (last_target_score != target_score || j > last_target_index)) {
+                sort_concepts[i] = j;
+                break;
+            }
+        }
+
+        last_target_score = target_score;
+        last_target_index = sort_concepts[i];
     }
 }
 
@@ -342,7 +353,7 @@ void populate_sort_concepts_array(W_and_S my_W_and_S, int sort_concepts[CONCEPTS
  * @param (int*)    p_max
  * @return int
 */
-int get_similar_values_between_two_concepts_and_set_p_min_and_p_max(int * sort_concepts, int * save_concepts_indexes, int * p_min, int * p_max){
+int get_similar_values_between_two_concepts_and_set_p_min_and_p_max(int * sort_concepts, int * save_concepts_indexes, int * p_min, int * p_max) {
     int concepts[CONCEPTS_NB] = {0};
     
     // Mark concepts that appear in both sort_concepts and save_concepts_indexes
